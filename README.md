@@ -1,4 +1,0 @@
-sicp
-====
-
-SICP Homework
