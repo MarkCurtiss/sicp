@@ -51,6 +51,8 @@
 ; Otherwise, a will subtract the value of b but since b is negative this
 ; evaluates to addition (a - -b).
 
+; Answers 1.5 and 1.6 are backwards!  I got the definitions backwards.
+; But per our group leader's instructions I am leaving this mistake as is!
 ; 1.5
 ; ========================================================================
 ; In an applicative-order evaluation the interpreter will return 0 -
