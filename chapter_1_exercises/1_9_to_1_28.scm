@@ -597,4 +597,50 @@
 ;1 ]=> (exhaustive-fermat-prime? 1106)
 ;Value: #f
 
+; 1.28
+; ========================================================================
+(define (modified-expmod base exp m)
+  (cond ((= exp 0) 1)
+        ((even? exp)
+	 (let ((sqr (square (modified-expmod base (/ exp 2) m))))
+	   (if (and
+		(not (= sqr 1))
+		(not (= sqr (- m 1)))
+		(= sqr (remainder 1 m)))
+	       0
+	       (remainder sqr m))
+	   ))
+        (else
+         (remainder (* base (modified-expmod base (- exp 1) m))
+                    m))))
 
+(define (miller-rabin-test n)
+  (define (try-it a)
+    (= (modified-expmod a (- n 1) n) 1))
+  (try-it (+ 1 (random (- n 1)))))
+
+(define (miller-rabin-prime? n times)
+  (cond ((= times 0) true)
+        ((miller-rabin-test n) (miller-rabin-prime? n (- times 1)))
+        (else false)))
+
+(define (miller-rabin-timed-prime-test n)
+  (define (report-prime elapsed-time)
+    (display (list n "is prime"))
+    (display (list "elapsed time:" elapsed-time))
+    (newline)
+    #t)
+  (define (start-prime-test n start-time)
+    (if (miller-rabin-prime? n 10)
+	(report-prime (- (runtime) start-time))
+	#f))
+
+  (start-prime-test n (runtime))
+)
+
+;1 ]=> (miller-rabin-timed-prime-test 17)
+;(17 is prime)(elapsed time: 0.)
+;Value: #t
+
+;1 ]=> (miller-rabin-timed-prime-test 6601)
+;;Value: #f
