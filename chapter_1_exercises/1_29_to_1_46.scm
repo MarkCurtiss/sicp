@@ -174,3 +174,139 @@
 ;1 ]=> (product-of-relatively-prime-integers 10)
 ;Value: 189
 
+; 1.34
+; ========================================================================
+(define (f g)
+  (g 2))
+; Recursion!  (f f) gets called and the argument f gets evaluated
+; with (f 2).  You then wind up calling (f g) with 2 as the second argument
+; which resolves to (2 2).  2 can't be called on 2!
+
+;1 ]=> (f f)
+;The object 2 is not applicable.
+
+; 1.35
+; ========================================================================
+(define (fixed-point f first-guess)
+  (define tolerance 0.00001)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (if (close-enough? guess next)
+	  next
+	  (try next))))
+  (try first-guess))
+
+
+;1 ]=> (fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0)
+;Value: 1.6180327868852458
+
+;1 ]=> (/ (+ 1 (sqrt 5)) 2)
+;Value: 1.618033988749895
+
+; 1.36
+; ========================================================================
+(define (fixed-point f first-guess)
+  (define tolerance 0.00001)
+  (define (close-enough? v1 v2)
+    (< (abs (- v1 v2)) tolerance))
+  (define (try guess)
+    (let ((next (f guess)))
+      (newline)
+      (display (list "Now comparing guess" guess "to next" next))
+      (if (close-enough? guess next)
+	  next
+	  (try next))))
+  (try first-guess))
+
+;1 ]=> (fixed-point (lambda (x) (/ (log 1000) (log x))) 1.1)
+;(Now comparing guess 1.1 to next 72.47657378429035)
+;(Now comparing guess 72.47657378429035 to next 1.6127318474109593)
+;(Now comparing guess 1.6127318474109593 to next 14.45350138636525)
+;(Now comparing guess 14.45350138636525 to next 2.5862669415385087)
+;(Now comparing guess 2.5862669415385087 to next 7.269672273367045)
+;(Now comparing guess 7.269672273367045 to next 3.4822383620848467)
+;(Now comparing guess 3.4822383620848467 to next 5.536500810236703)
+;(Now comparing guess 5.536500810236703 to next 4.036406406288111)
+;(Now comparing guess 4.036406406288111 to next 4.95053682041456)
+;(Now comparing guess 4.95053682041456 to next 4.318707390180805)
+;(Now comparing guess 4.318707390180805 to next 4.721778787145103)
+;(Now comparing guess 4.721778787145103 to next 4.450341068884912)
+;(Now comparing guess 4.450341068884912 to next 4.626821434106115)
+;(Now comparing guess 4.626821434106115 to next 4.509360945293209)
+;(Now comparing guess 4.509360945293209 to next 4.586349500915509)
+;(Now comparing guess 4.586349500915509 to next 4.535372639594589)
+;(Now comparing guess 4.535372639594589 to next 4.568901484845316)
+;(Now comparing guess 4.568901484845316 to next 4.546751100777536)
+;(Now comparing guess 4.546751100777536 to next 4.561341971741742)
+;(Now comparing guess 4.561341971741742 to next 4.551712230641226)
+;(Now comparing guess 4.551712230641226 to next 4.558059671677587)
+;(Now comparing guess 4.558059671677587 to next 4.55387226495538)
+;(Now comparing guess 4.55387226495538 to next 4.556633177654167)
+;(Now comparing guess 4.556633177654167 to next 4.554812144696459)
+;(Now comparing guess 4.554812144696459 to next 4.556012967736543)
+;(Now comparing guess 4.556012967736543 to next 4.555220997683307)
+;(Now comparing guess 4.555220997683307 to next 4.555743265552239)
+;(Now comparing guess 4.555743265552239 to next 4.555398830243649)
+;(Now comparing guess 4.555398830243649 to next 4.555625974816275)
+;(Now comparing guess 4.555625974816275 to next 4.555476175432173)
+;(Now comparing guess 4.555476175432173 to next 4.555574964557791)
+;(Now comparing guess 4.555574964557791 to next 4.555509814636753)
+;(Now comparing guess 4.555509814636753 to next 4.555552779647764)
+;(Now comparing guess 4.555552779647764 to next 4.555524444961165)
+;(Now comparing guess 4.555524444961165 to next 4.555543131130589)
+;(Now comparing guess 4.555543131130589 to next 4.555530807938518)
+;(Now comparing guess 4.555530807938518 to next 4.555538934848503)
+;Value: 4.555538934848503
+
+
+;1 ]=> (fixed-point (lambda (x) (/ (+ x (/ (log 1000) (log x))) 2)) 1.1)
+;(Now comparing guess 1.1 to next 36.78828689214517)
+;(Now comparing guess 36.78828689214517 to next 19.352175531882512)
+;(Now comparing guess 19.352175531882512 to next 10.84183367957568)
+;(Now comparing guess 10.84183367957568 to next 6.870048352141772)
+;(Now comparing guess 6.870048352141772 to next 5.227224961967156)
+;(Now comparing guess 5.227224961967156 to next 4.701960195159289)
+;(Now comparing guess 4.701960195159289 to next 4.582196773201124)
+;(Now comparing guess 4.582196773201124 to next 4.560134229703681)
+;(Now comparing guess 4.560134229703681 to next 4.5563204194309606)
+;(Now comparing guess 4.5563204194309606 to next 4.555669361784037)
+;(Now comparing guess 4.555669361784037 to next 4.555558462975639)
+;(Now comparing guess 4.555558462975639 to next 4.55553957996306)
+;(Now comparing guess 4.55553957996306 to next 4.555536364911781)
+;Value: 4.555536364911781
+
+
+;(define (sum term a next b)
+
+; 1.37
+; ========================================================================
+; a.
+(define (cont-frac n d k)
+  (define (iter n d k i)
+    (if (= i k)
+	(/ (n i) (d i))
+	(/ (n i) (+ (d i) (iter n d k (+ 1 i))))))
+
+  (iter n d k 1))
+
+; The target number is:
+;1 ]=> (/ 1 1.618033988749895)
+;Value: .6180339887498948
+
+; It takes a k of 11 to get an approximation accurate to 4 decimal places:
+;1 ]=> (cont-frac (lambda (i) 1.0) (lambda (i) 1.0) 11)
+;Value: .6180555555555556
+
+; b.
+(define (cont-frac-iterative n d k)
+  (define (iter n d k i result)
+    (cond ((= i k) (iter n d k (- i 1) (/ (n k) (d k))))
+	  ((= i 0) result)
+	  (else (iter n d k (- i 1) (/ (n k) (+ (d k) result))))))
+
+  (iter n d k k 0))
+
+;1 ]=> (cont-frac-iterative (lambda (i) 1.0) (lambda (i) 1.0) 11)
+;Value: .6180555555555556
