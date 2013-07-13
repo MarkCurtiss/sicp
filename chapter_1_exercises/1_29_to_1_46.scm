@@ -259,7 +259,7 @@
 ;(Now comparing guess 4.555543131130589 to next 4.555530807938518)
 ;(Now comparing guess 4.555530807938518 to next 4.555538934848503)
 ;Value: 4.555538934848503
-
+; This took 37 steps.
 
 ;1 ]=> (fixed-point (lambda (x) (/ (+ x (/ (log 1000) (log x))) 2)) 1.1)
 ;(Now comparing guess 1.1 to next 36.78828689214517)
@@ -276,9 +276,7 @@
 ;(Now comparing guess 4.555558462975639 to next 4.55553957996306)
 ;(Now comparing guess 4.55553957996306 to next 4.555536364911781)
 ;Value: 4.555536364911781
-
-
-;(define (sum term a next b)
+; This took 13 steps.
 
 ; 1.37
 ; ========================================================================
@@ -378,3 +376,93 @@
 ;(Now comparing guess -1.276209090923146 to next -1.27568238137649)
 ;(Now comparing guess -1.27568238137649 to next -1.2756822036498454)
 ;Value: -1.2756822036498454
+
+; 1.41
+; ========================================================================
+(define (double f)
+  (lambda (x)
+    (f (f x))
+  ))
+
+(define (inc i) (+ 1 i))
+
+;1 ]=> (((double (double double)) inc) 5)
+;Value: 21
+
+; 1.42
+; ========================================================================
+(define (compose f g)
+  (lambda (x)
+    (f (g x))))
+
+
+;1 ]=> ((compose square inc) 6)
+;Value: 49
+
+; 1.43
+; ========================================================================
+(define (repeated function num)
+  (define (iter i)
+    (if (= i num)
+	(lambda (x) (function x))
+	(compose function (iter (+ 1 i)))))
+
+  (iter 1))
+
+;1 ]=> ((repeated square 2) 5)
+;Value: 625
+
+; 1.44
+; ========================================================================
+(define (smooth function)
+  (lambda (x)
+    (/
+      (+
+       (function (- x dx))
+       (function x)
+       (function (+ x dx))
+       )
+      3)
+    ))
+
+
+;1 ]=> ((smooth square) 2)
+;Value: 4.000000000066667
+
+(define (n-fold-smooth function n)
+  ((repeated smooth n) function))
+
+;1 ]=> ((n-fold-smooth square 2) 2)
+;Value: 4.000000000133333
+
+; 1.45
+; ========================================================================
+(define (average x y)
+  (/ (+ x y) 2))
+
+(define (average-damp f)
+  (lambda (x) (average x (f x))))
+
+(define (log2 x)
+  (/
+   (log x)
+   (log 2)))
+
+(define (nth-root x n)
+  (let ((num-applications (truncate (log2 n))))
+    (fixed-point
+     ((repeated average-damp num-applications)
+      (lambda (y) (/ x (expt y (- n 1)))))
+     1.0)))
+
+;1 ]=> (nth-root 256 8)
+;(Now comparing guess 1. to next 32.875)
+;(Now comparing guess 32.875 to next 28.765625000771063)
+;(Now comparing guess 28.765625000771063 to next 25.16992187763819)
+;(Now comparing guess 25.16992187763819 to next 22.023681647933493)
+;(Now comparing guess 22.023681647933493 to next 19.270721454674508)
+;(Now comparing guess 19.270721454674508 to next 16.861881305264014)
+; ...
+;(Now comparing guess 2.0009281883446266 to next 2.0000015055871168)
+;(Now comparing guess 2.0000015055871168 to next 2.000000000003967)
+;Value: 2.000000000003967
