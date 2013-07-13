@@ -310,3 +310,71 @@
 
 ;1 ]=> (cont-frac-iterative (lambda (i) 1.0) (lambda (i) 1.0) 11)
 ;Value: .6180555555555556
+
+; 1.38
+; ========================================================================
+(define (euler-sequence i)
+  (cond ((= i 2) 2)
+	((= (remainder i 3) 2) (+ 2 (test-it (- i 3))))
+	(else 1)))
+
+;1 ]=> (+ 2.0 (cont-frac (lambda (i) 1.0) euler-sequence 10))
+;Value: 2.7182817182817183
+
+; 1.39
+; ========================================================================
+(define (tan-cf x k)
+  (cont-frac
+   (lambda (i)
+     (if (= i 1)
+	 x
+	 (- (square x))))
+   (lambda (i) (- (* 2.0 i) 1.0))
+   k))
+
+
+; Compare to the built-in
+;1 ]=> (tan 1.2)
+;Value: 2.5721516221263183
+
+;1 ]=> (tan-cf 1.2 10)
+;Value: 2.5721516221263188
+
+; 1.40
+; ========================================================================
+(define dx 0.00001)
+
+(define (deriv g)
+  (lambda (x)
+    (/ (- (g (+ x dx)) (g x))
+       dx)))
+
+(define (newton-transform g)
+  (lambda (x)
+    (- x (/ (g x) ((deriv g) x)))))
+
+(define (newtons-method g guess)
+  (fixed-point (newton-transform g) guess))
+
+(define (cubic a b c)
+  (lambda (x)
+    (+
+     (cube x)
+     (* a (square x))
+     (* b x)
+     c)
+    ))
+
+;1 ]=> (let
+;    ((a 1)
+;     (b 2)
+;     (c 3))
+;  (newtons-method (cubic a b c) 1))
+;
+;(Now comparing guess 1 to next 5.714266429257542e-6)
+;(Now comparing guess 5.714266429257542e-6 to next -1.4999839284734562)
+;(Now comparing guess -1.4999839284734562 to next -1.3043428073335799)
+;(Now comparing guess -1.3043428073335799 to next -1.276209090923146)
+;(Now comparing guess -1.276209090923146 to next -1.27568238137649)
+;(Now comparing guess -1.27568238137649 to next -1.2756822036498454)
+;Value: -1.2756822036498454
