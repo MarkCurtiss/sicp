@@ -469,6 +469,14 @@
 
 ; 1.46
 ; ========================================================================
+(define (iterative-improve good-enough? improve)
+  (define (iter guess)
+    (if (good-enough? guess)
+	guess
+	(iter (improve guess))
+	))
+  iter)
+
 (define (sqrt x)
   ((iterative-improve
     (lambda (guess) (< (abs (- (square guess) x)) 0.001))
@@ -477,14 +485,6 @@
 
 ;1 ]=> (sqrt 81.0)
 ;Value: 9.000011298790216
-
-(define (iterative-improve good-enough? improve)
-  (define (iter guess)
-    (if (good-enough? guess)
-	guess
-	(iter (improve guess))
-	))
-  iter)
 
 (define (fixed-point f first-guess)
   ((iterative-improve
