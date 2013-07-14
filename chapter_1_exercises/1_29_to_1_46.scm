@@ -466,3 +466,31 @@
 ;(Now comparing guess 2.0009281883446266 to next 2.0000015055871168)
 ;(Now comparing guess 2.0000015055871168 to next 2.000000000003967)
 ;Value: 2.000000000003967
+
+; 1.46
+; ========================================================================
+(define (sqrt x)
+  ((iterative-improve
+    (lambda (guess) (< (abs (- (square guess) x)) 0.001))
+    (lambda (guess) (average guess (/ x guess))))
+   x))
+
+;1 ]=> (sqrt 81.0)
+;Value: 9.000011298790216
+
+(define (iterative-improve good-enough? improve)
+  (define (iter guess)
+    (if (good-enough? guess)
+	guess
+	(iter (improve guess))
+	))
+  iter)
+
+(define (fixed-point f first-guess)
+  ((iterative-improve
+    (lambda (guess) (< (abs (- guess (f guess))) 0.00001))
+    (lambda (guess) (f guess)))
+     first-guess))
+
+;1 ]=> (fixed-point (lambda (x) (+ 1 (/ 1 x))) 1.0)
+;Value: 1.6180371352785146
