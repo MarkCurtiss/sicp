@@ -319,3 +319,141 @@
 ;; This combines the first element of every set with every possible combination
 ;; of subsets.
 
+; 2.33
+; ========================================================================
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(define (sequence-map p sequence)
+  (accumulate
+   (lambda (x y)
+     (cons (p x) y))
+   '()
+   sequence))
+
+;; 1 ]=> (sequence-map (lambda (x) (square x)) (list 2 3 4 5))
+;; Value 134: (4 9 16 25)
+
+(define (sequence-append seq1 seq2)
+  (accumulate cons seq2 seq1))
+
+;; 1 ]=> (sequence-append (list 1 2 3) (list 4 5 6))
+;; Value 136: (1 2 3 4 5 6)
+
+(define (sequence-length sequence)
+  (accumulate (lambda (x y) (+ 1 y)) 0 sequence))
+
+;; 1 ]=> (sequence-length (list 8 4 2 7 3))
+;; Value: 5
+
+; 2.34
+; ========================================================================
+(define (horner-eval x coefficient-sequence)
+  (accumulate
+   (lambda (this-coeff higher-terms)
+     (+ (* x higher-terms) this-coeff)
+     )
+   0
+   coefficient-sequence))
+
+;; (horner-eval 2 (list 1 3 0 5 0 1))
+;; Should be 79
+
+;; 1 ]=> (horner-eval 2 (list 1 3 0 5 0 1))
+;; Value: 79
+
+; 2.35
+; ========================================================================
+(define (count-leaves t)
+  (accumulate
+   +
+   0
+   (map (lambda (x) 1) (fringe t))))
+
+(define leafy-tree (cons (list 1 2) (list 3 4)))
+;;Value 141: ((1 2) 3 4)
+
+;; 1 ]=> (count-leaves leafy-tree)
+;; Value: 4
+;; 1 ]=> (count-leaves (list leafy-tree leafy-tree))
+;; Value: 8
+
+; 2.36
+; ========================================================================
+(define test-sequence (list (list 1 2 3) (list 4 5 6) (list 7 8 9) (list 10 11 12)))
+
+(define (accumulate-n op init seqs)
+  (if (null? (car seqs))
+      '()
+      (cons (accumulate op init (map (lambda (x) (car x)) seqs))
+            (accumulate-n op init (map (lambda (x) (cdr x)) seqs)))))
+
+;; 1 ]=> (accumulate-n + 0 test-sequence)
+;; Value 161: (22 26 30)
+
+; 2.37
+; ========================================================================
+(define test-matrix (list (list 1 2) (list 3 4)))
+
+(define (dot-product v w)
+  (accumulate + 0 (map * v w)))
+
+;; 1 ]=> (dot-product (list 1 2) (list 3 4))
+;; Value: 11
+
+(define (matrix-*-vector m v)
+  (map (lambda (row) (dot-product row v)) m))
+
+;; 1 ]=> (matrix-*-vector test-matrix (list 5 6))
+;; Value 162: (17 39)
+
+(define (transpose mat)
+  (accumulate-n cons '() mat))
+
+;; 1 ]=> (transpose test-matrix)
+;; Value 163: ((1 3) (2 4))
+;; 1 ]=> (transpose (list (list 1 2 3) (list 4 5 6)))
+;; Value 164: ((1 4) (2 5) (3 6))
+
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map (lambda (row) (matrix-*-vector cols row)) m)))
+
+;; 1 ]=> (matrix-*-matrix test-matrix test-matrix)
+;; Value 166: ((7 10) (15 22))
+
+; 2.38
+; ========================================================================
+;; 1 ]=> (fold-right / 1 (list 1 2 3))
+;; Value: 3/2
+
+;; 1 ]=> (fold-left / 1 (list 1 2 3))
+;; Value: 1/6
+
+;; 1 ]=> (fold-right list '() (list 1 2 3))
+;; Value 168: (1 (2 (3 ())))
+
+;; 1 ]=> (fold-left list '() (list 1 2 3))
+;; Value 169: (((() 1) 2) 3)
+
+;; An operation has to have the commutative property in order for fold-left
+;; and fold-right to produce the same.  This is because the operation
+;; can't care that the order of operations are going to be different.
+
+; 2.39
+; ========================================================================
+(define (reverse sequence)
+  (fold-right (lambda (x y) (append y (list x))) '() sequence))
+
+;; 1 ]=> (reverse (list 1 4 9 16 25))
+;; Value 175: (25 16 9 4 1)
+
+(define (reverse sequence)
+  (fold-left (lambda (x y) (cons y x)) '() sequence))
+
+;; 1 ]=> (reverse (list 1 4 9 16 25))
+;; Value 178: (25 16 9 4 1)
+
