@@ -269,3 +269,53 @@
 
 ; 2.30
 ; ========================================================================
+(define test-tree (list 1 (list 2 (list 3 4) 5) (list 6 7)))
+
+(define (square-tree-direct tree)
+  (cond ((null? tree) '())
+	((not (pair? tree)) (square tree))
+	(else (cons (square-tree-direct (car tree)) (square-tree-direct (cdr tree))))))
+
+;; 1 ]=> (square-tree-direct test-tree)
+;; Value 124: (1 (4 (9 16) 25) (36 49))
+
+(define (square-tree tree)
+  (map (lambda (subtree)
+	 (if (pair? subtree)
+	     (square-tree subtree)
+	     (square subtree)))
+       tree))
+
+;; 1 ]=> (square-tree test-tree)
+;; Value 126: (1 (4 (9 16) 25) (36 49))
+
+; 2.31
+; ========================================================================
+(define (tree-map function tree)
+  (map (lambda (subtree)
+	 (if (pair? subtree)
+	     (tree-map function subtree)
+	     (function subtree)))
+       tree))
+
+(define (square-tree tree) (tree-map square tree))
+
+;; 1 ]=> (square-tree test-tree)
+;; Value 127: (1 (4 (9 16) 25) (36 49))
+
+; 2.32
+; ========================================================================
+;; (subsets (list 1 2 3))
+;; (() (3) (2) (2 3) (1) (1 3) (1 2) (1 2 3))
+(define (subsets s)
+  (if (null? s)
+      (list '())
+      (let ((rest (subsets (cdr s))))
+        (append rest (map (lambda (x) (cons (car s) x)) rest)))))
+
+;; 1 ]=> (subsets (list 1 2 3))
+;; Value 130: (() (3) (2) (2 3) (1) (1 3) (1 2) (1 2 3))
+
+;; This combines the first element of every set with every possible combination
+;; of subsets.
+
