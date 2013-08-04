@@ -73,3 +73,199 @@
 ;; Value 25: (1 3 5 7)
 ;; 1 ]=> (same-parity 2 3 4 5 6 7)
 ;; Value 26: (2 4 6)
+
+; 2.21
+; ========================================================================
+(define (square-list items)
+  (if (null? items)
+      '()
+      (cons (square (car items)) (square-list (cdr items)))))
+
+;; 1 ]=> (square-list (list 1 2 3 4))
+;; Value 29: (1 4 9 16)
+
+(define (square-list items)
+  (map square items))
+
+;; 1 ]=> (square-list (list 1 2 3 4))
+;; Value 32: (1 4 9 16)
+
+; 2.22
+; ========================================================================
+;; He is building up 'answer' by prepending to it while iterating over
+;; 'items'. What did he think was going to happen??
+
+;; His second implementation is going to put a nil at the front of the list.
+;; Also, it's going to return nested list as the first argument to cons is
+;; always going to be a list
+
+; 2.23
+; ========================================================================
+(define (my-for-each func items)
+  (define (iter things)
+    (cond ((null? things) true)
+	  (else
+	   (func (car things))
+	   (iter (cdr things)))
+	  ))
+
+  (iter items))
+
+
+;; 1 ]=> (my-for-each (lambda (x) (newline) (display x)) (list 57 321 88))
+;; 57
+;; 321
+;; 88
+;; Value: #t
+
+; 2.24
+; ========================================================================
+
+;; 1 ]=> (list 1 (list 2 (list 3 4)))
+;; Value 36: (1 (2 (3 4)))
+
+;; 1
+;;  \
+;;   \
+;;    2
+;;   / \
+;;  /   \
+;; 3     4
+
+; 2.25
+; ========================================================================
+;; (cdr (car (cdr (cdr
+;;  (list 1 3 (list 5 7) 9)
+;; ))))
+;; Value 44: (7)
+
+;; (car (car
+;;   (list (list 7))
+;; ))
+;; Value: 7
+
+;; (car (cdr (car (cdr (car (cdr (car (cdr (car (cdr (car (cdr
+;;   (list 1 (list 2 (list 3 (list 4 (list 5 (list 6 7))))))
+;; ))))))))))))
+;; Value: 7
+
+; 2.26
+; ========================================================================
+(define x (list 1 2 3))
+(define y (list 4 5 6))
+
+;; 1 ]=> (append x y)
+;; Value 56: (1 2 3 4 5 6)
+
+;; 1 ]=> (cons x y)
+;; Value 57: ((1 2 3) 4 5 6)
+
+;; 1 ]=> (list x y)
+;; Value 58: ((1 2 3) (4 5 6))
+
+
+; 2.27
+; ========================================================================
+(define x (list (list 1 2) (list 3 4)))
+
+(define (deep-reverse items)
+  (define (iter things answer)
+    (cond ((null? things) answer)
+	  ((pair? (car things)) (iter (cdr things) (cons (reverse (car things)) answer)))
+	  (else (iter (cdr things) (append answer (car things))))))
+
+  (iter items '()))
+
+;; 1 ]=> (deep-reverse x)
+;; Value 72: ((4 3) (2 1))
+
+; 2.28
+; ========================================================================
+(define x (list (list 1 2) (list 3 4)))
+
+(define (fringe tree)
+  (cond ((null? tree) '())
+	((pair? tree) (append (fringe (car tree)) (fringe (cdr tree))))
+	(else (list tree))))
+
+;; 1 ]=> (fringe x)
+;; Value 83: (1 2 3 4)
+;; 1 ]=> (fringe (list x x))
+;; Value 84: (1 2 3 4 1 2 3 4)
+
+; 2.29
+; ========================================================================
+(define (make-mobile left right)
+  (list left right))
+
+(define (make-branch length structure)
+  (list length structure))
+
+;; a.
+(define (branch-length branch)
+  (car branch))
+
+(define (branch-structure branch)
+  (car (cdr branch)))
+
+(define (left-branch mobile)
+  (car mobile))
+
+(define (right-branch mobile)
+  (car (cdr mobile)))
+
+;; b.
+(define (branch-weight branch)
+  (let ((structure (branch-structure branch)))
+	(if (pair? structure)
+	    (+ (branch-weight (left-branch structure))
+	       (branch-weight (right-branch structure)))
+	    structure)))
+
+(define (total-weight mobile)
+  (+ (branch-weight (left-branch mobile))
+     (branch-weight (right-branch mobile))))
+
+
+(define test-mobile (make-mobile (make-branch 1 2) (make-branch 3 (make-mobile (make-branch 4 5) (make-branch 6 7)))))
+
+;; 1 ]=> (total-weight test-mobile)
+;; Value: 14
+
+;; c.
+(define (branch-torque branch)
+  (let ((structure (branch-structure branch)))
+    (if (pair? structure)
+	(* (branch-length branch)
+	   (branch-torque (left-branch structure))
+	   (branch-torque (right-branch structure)))
+	(* (branch-length branch) structure))))
+
+(define balanced-test-mobile (make-mobile (make-branch 10 12) (make-mobile 2
+									   (make-mobile (make-branch 1 5) (make-branch 2 6)))))
+(define (balanced-mobile? mobile)
+  (= (branch-torque (left-branch mobile))
+     (branch-torque (right-branch mobile))))
+
+;; 1 ]=> (balanced-mobile? test-mobile)
+;; Value: #f
+;; 1 ]=> (balanced-mobile? balanced-test-mobile)
+;; Value: #t
+
+;; d.
+(define (make-mobile left right)
+  (cons left right))
+(define (make-branch length structure)
+  (cons length structure))
+
+;; None at all!  A (cons left right) is accessed and represented the same way as (list left right)
+
+;; 1 ]=> (balanced-mobile? balanced-test-mobile)
+;; Value: #t
+;; 1 ]=> (balanced-mobile? test-mobile)
+;; Value: #f
+;; 1 ]=> (total-weight balanced-test-mobile)
+;; Value: 23
+
+; 2.30
+; ========================================================================
