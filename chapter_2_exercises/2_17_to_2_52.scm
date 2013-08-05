@@ -457,3 +457,76 @@
 ;; 1 ]=> (reverse (list 1 4 9 16 25))
 ;; Value 178: (25 16 9 4 1)
 
+; 2.40
+; ========================================================================
+(load "../prime.scm")
+
+(define (enumerate-interval low high)
+  (if (> low high)
+      '()
+      (cons low (enumerate-interval (+ low 1) high))))
+
+(define (flatmap proc seq)
+  (accumulate append '() (map proc seq)))
+
+(define (prime-sum? pair)
+  (prime? (+ (car pair) (cadr pair))))
+
+(define (make-pair-sum pair)
+  (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
+
+(define (unique-pairs n)
+  (flatmap
+   (lambda (i)
+     (map (lambda (j) (list i j))
+	  (enumerate-interval 1 (- i 1))))
+   (enumerate-interval 1 n)))
+
+(define (prime-sum-pairs n)
+  (map make-pair-sum
+       (filter prime-sum? (unique-pairs n))))
+
+; 2.41
+; ========================================================================
+(define (unique-triples n)
+  (define (ordered? triple)
+    (< (car triple) (cadr triple) (cadr (cdr triple))))
+
+  (define (unique? triple)
+    (not (= (car triple) (cadr triple) (cadr (cdr triple)))))
+
+  (filter
+   ordered?
+   (filter
+    unique?
+    (flatmap
+     (lambda (i)
+       (flatmap (lambda (j)
+		  (map (lambda (k) (list i j k))
+		       (enumerate-interval 1 n)
+		       ))
+		(enumerate-interval 1 n))
+       )
+     (enumerate-interval 1 n)))))
+
+
+(define (triples-up-to-n-what-sum-to-s n s)
+  (define (sum-to-s? triple)
+    (= (+ (car triple) (cadr triple) (cadr (cdr triple))) s))
+
+  (filter
+   sum-to-s?
+   (unique-triples n)))
+
+
+;; 1 ]=> (triples-up-to-n-what-sum-to-s 3 4)
+;; Value: ()
+
+;; 1 ]=> (triples-up-to-n-what-sum-to-s 3 6)
+;; Value 212: ((1 2 3))
+
+;; 1 ]=> (triples-up-to-n-what-sum-to-s 8 9)
+;; Value 213: ((1 2 6) (1 3 5) (2 3 4))
+
+;; 1 ]=> (triples-up-to-n-what-sum-to-s 10 15)
+;; Value 214: ((1 4 10) (1 5 9) (1 6 8) (2 3 10) (2 4 9) (2 5 8) (2 6 7) (3 4 8) (3 5 7) (4 5 6))
