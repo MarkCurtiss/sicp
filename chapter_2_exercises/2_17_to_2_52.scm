@@ -530,3 +530,134 @@
 
 ;; 1 ]=> (triples-up-to-n-what-sum-to-s 10 15)
 ;; Value 214: ((1 4 10) (1 5 9) (1 6 8) (2 3 10) (2 4 9) (2 5 8) (2 6 7) (3 4 8) (3 5 7) (4 5 6))
+
+; 2.42
+; ========================================================================
+(define empty-board '())
+
+;; Let's represent positions as (column, row) pairs with the origin in
+;; the upper left.
+;; A queen in row 1 column 2 would be (2, 1)
+;; so a solved 4x4 board would be
+;; (1, 2) (2, 4) (3, 1) (4, 3)
+;;    _ _ _ _
+;; 1 | | |w| |
+;; 2 |w| | | |
+;; 3 | | | |w|
+;; 4 | |w| | |
+;;    - - - -
+;;    1 2 3 4
+
+(define (make-position column row)
+  (list column row))
+(define (position-column position)
+  (car position))
+(define (position-row position)
+  (cadr position))
+
+;; Two positions are diagonal if the
+;; |difference between the columns| = |difference between the rows|
+;; So (2,3) is diagonal to
+;;    (1,2), (1,4)
+;;    (3,4), (3,2)
+;;    (4,1)
+(define (positions-are-diagonal? position1 position2)
+  (=
+   (abs (- (position-column position1) (position-column position2)))
+   (abs (- (position-row position1) (position-row position2)))))
+
+(define (adjoin-position new-row k rest-of-queens)
+  (cons (make-position k new-row) rest-of-queens))
+
+(define (safe? queen-column set-of-positions)
+  (define queen-position (car set-of-positions))
+  (define other-queens (cdr set-of-positions))
+
+  (define (positions-dont-share-row queen-position positions)
+    (define queen-row (position-row queen-position))
+    (= 0 (length (filter (lambda (position) (= (position-row position) queen-row)) other-queens))))
+
+  (define (positions-dont-share-diagonal queen-position positions)
+    (= 0 (length (filter (lambda (position) (positions-are-diagonal? queen-position position)) other-queens))))
+
+  (cond ((= queen-column 1) true)
+	((and (positions-dont-share-row queen-position set-of-positions)
+	      (positions-dont-share-diagonal queen-position set-of-positions)) true)
+	(else false)
+  ))
+
+(define (queens board-size)
+  (define (queen-cols k)
+    (if (= k 0)
+        (list empty-board)
+        (filter
+         (lambda (positions) (safe? k positions))
+         (flatmap
+          (lambda (rest-of-queens)
+            (map (lambda (new-row)
+                   (adjoin-position new-row k rest-of-queens))
+                 (enumerate-interval 1 board-size))
+	    )
+          (queen-cols (- k 1))))))
+  (queen-cols board-size))
+
+(define (print-solution positions)
+  (define (iter-column positions column-num row-num)
+    (cond ((null? positions) (display "|") true)
+	  ((and
+	    (= (position-column (car positions)) column-num)
+	    (= (position-row (car positions)) row-num))
+	   (display "|w") (iter-column (cdr positions) (+ 1 column-num) row-num))
+	  (else (display "| ") (iter-column (cdr positions) (+ 1 column-num) row-num))))
+
+  (define (iter-row row-num)
+    (cond ((> row-num (length positions)) true)
+	  (else
+	   (newline)
+	   (iter-column (reverse positions) 1 row-num)
+	   (iter-row (+ 1 row-num)))))
+
+  (iter-row 1))
+
+;; 1 ]=> (for-each (lambda (solution) (print-solution solution) (newline)) (queens 4))
+;; | | |w| |
+;; |w| | | |
+;; | | | |w|
+;; | |w| | |
+
+;; | |w| | |
+;; | | | |w|
+;; |w| | | |
+;; | | |w| |
+;; Unspecified return value
+
+
+;; 1 ]=> (for-each (lambda (solution) (print-solution solution) (newline)) (queens 6))
+;; | | | |w| | |
+;; |w| | | | | |
+;; | | | | |w| |
+;; | |w| | | | |
+;; | | | | | |w|
+;; | | |w| | | |
+
+;; | | | | |w| |
+;; | | |w| | | |
+;; |w| | | | | |
+;; | | | | | |w|
+;; | | | |w| | |
+;; | |w| | | | |
+
+;; | |w| | | | |
+;; | | | |w| | |
+;; | | | | | |w|
+;; |w| | | | | |
+;; | | |w| | | |
+;; | | | | |w| |
+
+;; | | |w| | | |
+;; | | | | | |w|
+;; | |w| | | | |
+;; | | | | |w| |
+;; |w| | | | | |
+;; | | | |w| | |
+;; Unspecified return value
