@@ -661,3 +661,10 @@
 ;; |w| | | | | |
 ;; | | | |w| | |
 ;; Unspecified return value
+
+; 2.43
+; ========================================================================
+;; Rather than calling (queen-cols) once for every column in the board, this
+;; implementation is calling it n times for every row.  So instead of
+;; generating all the sets of positions once, you are generating them n times.
+;; So this would be T(2^n) 'cuz it is exponential?
