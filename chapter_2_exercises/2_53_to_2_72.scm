@@ -62,7 +62,7 @@
 ;; Uh and the (car) of that is clearly gonna be the symbol 'quote'
 
 
-; 2.55
+; 2.56
 ; ========================================================================
 (define (=number? exp num) (and (number? exp) (= exp num)))
 (define (variable? x) (symbol? x))
@@ -72,15 +72,16 @@
         ((=number? a2 0) a1)
         ((and (number? a1) (number? a2)) (+ a1 a2))
         (else (list '+ a1 a2))))
+(define (sum? x)  (and (pair? x) (eq? (car x) '+)))
+(define (addend s) (cadr s))
+(define (augend s) (caddr s))
+
 (define (make-product m1 m2)
     (cond ((or (=number? m1 0) (=number? m2 0)) 0)
         ((=number? m1 1) m2)
         ((=number? m2 1) m1)
         ((and (number? m1) (number? m2)) (* m1 m2))
         (else (list '* m1 m2))))
-(define (sum? x)  (and (pair? x) (eq? (car x) '+)))
-(define (addend s) (cadr s))
-(define (augend s) (caddr s))
 (define (product? x) (and (pair? x) (eq? (car x) '*)))
 (define (multiplier p) (cadr p))
 (define (multiplicand p) (caddr p))
@@ -98,10 +99,9 @@
                          (deriv (multiplicand exp) var))
            (make-product (deriv (multiplier exp) var)
                          (multiplicand exp))))
-
 	((exponentiation? exp)
 	 (make-product
-	  (base test-expt)
+	  (base exp)
 	  (make-expt (base exp)
 		     (- (power exp) 1))))
         (else
@@ -129,3 +129,17 @@
 ;; 1 ]=> (deriv (make-expt 'a 8) 'a)
 ;; Value 37: (* a (** a 7))
 
+; 2.57
+; ========================================================================
+(define (addend s) (cadr s))
+(define (augend s)
+  (cond ((> (length s) 3) (cons '+ (cddr s)))
+	(else (caddr s))))
+
+(define (multiplier p) (cadr p))
+(define (multiplicand p)
+  (cond ((> (length p) 3) (cons '* (cddr p)))
+	(else (caddr p))))
+
+;; 1 ]=> (deriv '(* x y (+ x 3)) 'x)
+;; Value 165: (+ (* x y) (* y (+ x 3)))
