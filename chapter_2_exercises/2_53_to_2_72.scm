@@ -432,3 +432,136 @@
 
 ; 2.66
 ; ========================================================================
+(define (lookup given-key records-as-tree)
+  (cond ((null? records-as-tree) false)
+	((equal? given-key (entry records-as-tree)) (entry records-as-tree))
+	((< given-key (entry records-as-tree)) (lookup given-key (left-branch records-as-tree)))
+	(else (lookup given-key (right-branch records-as-tree)))))
+
+;; 1 ]=> (lookup 6 tree2)
+;; Value: 6
+;; 1 ]=> (lookup 9 tree2)
+;; Value: #f
+
+; 2.67
+; ========================================================================
+(define (make-leaf symbol weight)
+  (list 'leaf symbol weight))
+(define (leaf? object)
+  (eq? (car object) 'leaf))
+(define (symbol-leaf x) (cadr x))
+(define (weight-leaf x) (caddr x))
+
+(define (make-code-tree left right)
+  (list left
+        right
+        (append (symbols left) (symbols right))
+        (+ (weight left) (weight right))))
+
+(define (left-branch tree) (car tree))
+(define (right-branch tree) (cadr tree))
+(define (symbols tree)
+  (if (leaf? tree)
+      (list (symbol-leaf tree))
+      (caddr tree)))
+(define (weight tree)
+  (if (leaf? tree)
+      (weight-leaf tree)
+      (cadddr tree)))
+
+(define (decode bits tree)
+  (define (decode-1 bits current-branch)
+    (if (null? bits)
+        '()
+        (let ((next-branch
+               (choose-branch (car bits) current-branch)))
+          (if (leaf? next-branch)
+              (cons (symbol-leaf next-branch)
+                    (decode-1 (cdr bits) tree))
+              (decode-1 (cdr bits) next-branch)))))
+  (decode-1 bits tree))
+
+(define (choose-branch bit branch)
+  (cond ((= bit 0) (left-branch branch))
+        ((= bit 1) (right-branch branch))
+        (else (error "bad bit -- CHOOSE-BRANCH" bit))))
+
+(define (adjoin-set x set)
+  (cond ((null? set) (list x))
+        ((< (weight x) (weight (car set))) (cons x set))
+        (else (cons (car set)
+                    (adjoin-set x (cdr set))))))
+
+(define (make-leaf-set pairs)
+  (if (null? pairs)
+      '()
+      (let ((pair (car pairs)))
+        (adjoin-set (make-leaf (car pair)    ; symbol
+                               (cadr pair))  ; frequency
+                    (make-leaf-set (cdr pairs))))))
+
+(define sample-tree
+  (make-code-tree (make-leaf 'A 4)
+                  (make-code-tree
+                   (make-leaf 'B 2)
+                   (make-code-tree (make-leaf 'D 1)
+                                   (make-leaf 'C 1)))))
+
+(define sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0))
+;;                       a d     a b   b   c     a
+;; 1 ]=> (decode sample-message sample-tree)
+;; Value 243: (a d a b b c a)
+
+; 2.68
+; ========================================================================
+(define (encode message tree)
+  (if (null? message)
+      '()
+      (append (encode-symbol (car message) tree)
+              (encode (cdr message) tree))))
+
+(define (encode-symbol symbol tree)
+  (define (element-of-set? x set)
+    (cond ((null? set) false)
+	  ((equal? x (car set)) true)
+	  (else (element-of-set? x (cdr set)))))
+
+  (define (iter symbol tree encoding)
+    (cond ((null? tree)
+	   (error "symbol" symbol "is not in the tree"))
+	  ((leaf? tree)
+	   (if (equal? (symbol-leaf tree) symbol)
+	       encoding
+	       (error "symbol" symbol "made it to a leaf node" tree "without finding a match")))
+	  ((element-of-set? symbol (symbols (left-branch tree)))
+	   (iter symbol (left-branch tree) (append encoding '(0))))
+	  (else
+	   (iter symbol (right-branch tree) (append encoding '(1))))
+    ))
+
+  (iter symbol tree '()))
+
+;; 1 ]=> (encode '(a d a b b c a) sample-tree)
+;; Value 261: (0 1 1 0 0 1 0 1 0 1 1 1 0)
+;; 1 ]=> (equal? (encode '(a d a b b c a) sample-tree) sample-message)
+;; Value: #t
+
+; 2.69
+; ========================================================================
+(define test-pairs '((A 4) (B 2) (C 1) (D 1)))
+(define (generate-huffman-tree pairs)
+  (successive-merge (make-leaf-set pairs)))
+
+(define (successive-merge leaf-set)
+  (define (iter tree leaf-set)
+    (cond ((null? leaf-set)
+	   tree)
+	  ((null? tree)
+	   (iter (make-code-tree (car leaf-set) (cadr leaf-set)) (cddr leaf-set)))
+	  (else
+	   (iter (make-code-tree (car leaf-set) tree) (cdr leaf-set)))))
+
+  (iter '() leaf-set))
+
+;; 1 ]=> (generate-huffman-tree test-pairs)
+;; Value 291: ((leaf a 4) ((leaf b 2) ((leaf d 1) (leaf c 1) (d c) 2) (b d c) 4) (a b d c) 8)
