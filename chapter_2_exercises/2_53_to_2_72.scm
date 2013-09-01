@@ -565,3 +565,67 @@
 
 ;; 1 ]=> (generate-huffman-tree test-pairs)
 ;; Value 291: ((leaf a 4) ((leaf b 2) ((leaf d 1) (leaf c 1) (d c) 2) (b d c) 4) (a b d c) 8)
+
+; 2.70
+; ========================================================================
+(define rock-pairs '((A 2) (NA 16) (BOOM 1) (SHA 3) (GET 2) (YIP 9) (JOB 2) (WAH 1)))
+(define rock-lyrics '(Get a job Sha na na na na na na na na Get a job Sha na na na na na na na na Wah yip yip yip yip yip yip yip yip yip Sha boom))
+
+;; 1 ]=> (generate-huffman-tree rock-pairs)
+;; Value 2: ((leaf na 16) ((leaf yip 9) ((leaf sha 3) ((leaf a 2) ((leaf get 2) ((leaf job 2) ((leaf wah 1) (leaf boom 1) (wah boom) 2) (job wah boom) 4) (get job wah boom) 6) (a get job wah boom) 8) (sha a get job wah boom) 11) (yip sha a get job wah boom) 20) (na yip sha a get job wah boom) 36)
+
+;; 1 ]=> (encode rock-lyrics (generate-huffman-tree rock-pairs))
+;; Value 4: (1 1 1 1 0 1 1 1 0 1 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 0 1 1 1 0 1 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 0 1 1 1 1 1 1 1)
+
+;; 87 bits are required for the encoding using variable-length codes.
+
+;; If we used a fixed-length encoding, we'd need log2(8) == 3 bits per
+;; symbol to do the encoding.  With 36 symbols in our set of rock lyrics
+;; we'd need 36 * 3 == 108 bits to do the encoding.
+
+; 2.71
+; ========================================================================
+;; For n = 5
+;;     (E D C B A) 31
+;;      /         \
+;; (E) 16      (D C A B) 15
+;;              /       \
+;;            (D) 8   (C A B) 7
+;;                    /      \
+;;                 (C) 4   (A B) 3
+;;                         /    \
+;;                      (A) 1   (B) 2
+;;
+;; For n = 10
+;;         (J I H G F E D C A B) 1023
+;;        /                    \
+;; (J) 512         (I H G F E D C A B) 511
+;;                  /                \
+;;               (I) 256          (H G F E D C A B) 255
+;;                                 /             \
+;;                               (H) 128        (G F E D C A B) 127
+;;                                              /            \
+;;                                            (G) 64        (F E D C A B) 63
+;;                                                          /          \
+;;                                                        (F) 32      (E D C A B) 31
+;;                                                                     /        \
+;; 								  (E) 16    (D C A B) 15
+;; 									    /       \
+;; 									  (D) 8    (C A B) 7
+;; 										   /     \
+;; 										 (C) 4   (A B) 3
+;; 											 /   \
+;; 										       (A) 1 (B) 2
+
+;; In this type of tree, the most frequently occuring symbol requires
+;; 1 bit to encode and the least frequently occuring symbol requires
+;; n - bits to encode.
+
+; 2.72
+; ========================================================================
+;; The algorithm to encode a symbol using our special representation grows
+;; O(n^2) in the worst case - you have to traverse the entire tree of depth
+;; n and search n symbols using (element-of-set?) at each level.
+;; In the best case it is O(1) 'cuz you find your symbol in the left leaf
+;; node and search a 1-item list!
+;; In the average case it is O(n).
