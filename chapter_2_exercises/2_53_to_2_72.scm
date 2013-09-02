@@ -168,12 +168,18 @@
 ;; 1 ]=> (deriv '(x + (3 * (x + (y + 2)))) 'x)
 ;; Value: 4
 
-;;b. (deriv '(x + 3 * (x + y + 2)) 'x)
-;;should be 4
-;; we need
-;; 2 error> (augend '(x + y + 2))
-;; to return
-;; Value 170: (y + 2)
+;;b.
+(define (augend s)
+  (if (> (length s) 3)
+      (cddr s)
+      (caddr s)))
+(define (multiplicand p)
+  (if (> (length p) 3)
+      (cddr p)
+      (caddr p)))
+
+;; 1 ]=> (deriv '(x + 3 * (x + y + 2)) 'x)
+;; Value: 4
 
 ; 2.59
 ; ========================================================================
