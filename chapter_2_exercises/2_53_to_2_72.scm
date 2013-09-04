@@ -392,7 +392,7 @@
 ;; node and the left and right halves of the list as the left and right subtrees.
 ;; Thus, (partial-tree) divides the elements list in half recursively until it runs out of sublists,
 ;; then uses (make-tree) to construct balanced binary trees from these sublists with the middle
-;; element of the list at the root.  So (partial-tree '(1 3 4 7 9 11), 3) would return:
+;; element of the list at the root.  So (partial-tree '(1 3 5 7 9 11), 3) would return:
 ;;   3
 ;;  / \
 ;; 1   5
@@ -625,7 +625,7 @@
 
 ;; In this type of tree, the most frequently occuring symbol requires
 ;; 1 bit to encode and the least frequently occuring symbol requires
-;; n - bits to encode.
+;; n - 1 bits to encode.
 
 ; 2.72
 ; ========================================================================
