@@ -239,3 +239,17 @@
 ;; d.
 ;; Any new company will require a new implentation of (get-record) and
 ;; (get-salary) as well as division information on their personnel files.
+
+; 2.75
+; ========================================================================
+(define (make-from-mag-ang r a)
+  (define (dispatch op)
+    (cond ((eq? op 'real-part)
+	   (* r (cos a)))
+	  ((eq? op 'imag-part)
+	   (* r (sin a)))
+	  ((eq? op 'magnitude) r)
+	  ((eq? op 'angle) a)
+           (else
+            (error "Unknown op -- MAKE-FROM-MAG-AGN" op))))
+  dispatch)
