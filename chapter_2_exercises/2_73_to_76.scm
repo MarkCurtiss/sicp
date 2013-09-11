@@ -205,3 +205,37 @@
 ;; Value: done
 ;; 1 ]=> (special-deriv '(** a 8) 'a)
 ;; Value 18: (* a (** a 7))
+
+; 2.74
+; ========================================================================
+;; a.
+(define (get-record employee-id division-file)
+  ((get 'get-record (type-tag division-file))))
+
+;; An individual division can be in any structure it wants, provided it
+;; has type information identifying employee records as well as type
+;; information identifying the division.  Also, each division will have to
+;; supply its own (get-record) implementation.
+
+;; b.
+(define (get-salary employee-record)
+  ((get 'get-salary (division employee-record))))
+;; This'll only work if each employee record contains a tag stating which
+;; division it's in - that way we can look up the appropriate (get-salary)
+;; implementation in the dispatch table.
+
+;; c.
+(define (find-employee-record name division-files)
+  (if (null? division-files)
+      '()
+      (let ((current-file (car division-files)))
+	(if (null? current-file)
+	    '()
+	    (let ((employee-record (get-record name current-file)))
+	      (if (null? employee-record)
+		  (find-employee-record (cdr division-files))
+		  employee-record))))))
+
+;; d.
+;; Any new company will require a new implentation of (get-record) and
+;; (get-salary) as well as division information on their personnel files.
