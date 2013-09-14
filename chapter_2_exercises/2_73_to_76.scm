@@ -253,3 +253,30 @@
            (else
             (error "Unknown op -- MAKE-FROM-MAG-AGN" op))))
   dispatch)
+
+; 2.76
+; ========================================================================
+;; Generic operations with explicit dispatch:
+;; Adding new types requires you to update the generic operations to
+;; dispatch on the new types, as well as adding type-specific
+;; implementations.  Adding a new operation means you have to find all
+;; existing types in the system and consider them in your operation as
+;; well as implement type-specific versions of that operation.
+
+;; Data-directed:
+;; Adding new types requires you to write a new package for that type that
+;; implements selectors and functions and puts entries in the global
+;; dispatch table.  Adding a new operation requires you to add it to
+;; each type's package.
+
+;; Message-passing:
+;; Adding a new type requires you write a new procedure that dispatches on
+;; operation.  Adding a new operation entails updating your existing
+;; procedures to account for the new operation.
+
+;; If you're constantly adding new types generic operations with explicit
+;; dispatch would be the easiest way to organize your programs.  If you're
+;; constantly adding new operations message-passing would be the simplest
+;; way to organize your code.
+
+
