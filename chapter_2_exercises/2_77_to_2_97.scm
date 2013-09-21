@@ -535,3 +535,109 @@
 ;; Value: #t
 ;; 1 ]=> (=zero? (make-complex-from-mag-ang 0 0))
 ;; Value: #t
+
+; 2.81
+; ========================================================================
+(define put-coercion 2d-put!)
+(define get-coercion 2d-get)
+
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op (car type-tags))))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (let ((t1->t2 (get-coercion type1 type2))
+                      (t2->t1 (get-coercion type2 type1)))
+                  (cond (t1->t2
+                         (apply-generic op (t1->t2 a1) a2))
+                        (t2->t1
+                         (apply-generic op a1 (t2->t1 a2)))
+                        (else
+                         (error "No method for these types"
+                                (list op type-tags))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+(define (scheme-number->scheme-number n) n)
+(define (complex->complex z) z)
+(put-coercion 'scheme-number 'scheme-number
+              scheme-number->scheme-number)
+(put-coercion 'complex 'complex complex->complex)
+
+;;a.
+;; It will do infinite recursion!  It will find the conversion from
+;; complex->complex and then try to
+;;   (apply-generic op (t1->t2 a1) a2))
+;; which will route back to (apply-generic) and fail to find an operation
+;; defined for it.  Thus it will find the conversion and execute the same
+;;   (apply-generic op (t1->t2 a1) a2))
+;; line.
+
+(define (exp x y) (apply-generic 'exp x y))
+
+(define (install-scheme-number-package)
+  (define (tag x)
+    (attach-tag 'scheme-number x))
+  (put 'add 'scheme-number
+       (lambda (x y) (tag (+ x y))))
+  (put 'sub 'scheme-number
+       (lambda (x y) (tag (- x y))))
+  (put 'mul 'scheme-number
+       (lambda (x y) (tag (* x y))))
+  (put 'div 'scheme-number
+       (lambda (x y) (tag (/ x y))))
+  (put 'make 'scheme-number
+       (lambda (x) (tag x)))
+  (put 'equ? 'scheme-number
+       (lambda (x y) (= x y)))
+  (put '=zero? 'scheme-number
+       (lambda (x) (= x 0)))
+;;BEGIN NEW CODE
+  (put 'exp '(scheme-number scheme-number)
+     (lambda (x y) (tag (expt x y)))) ; using primitive expt
+;;END NEW CODE
+  'done)
+
+(install-scheme-number-package)
+;; 1 ]=> (exp (make-complex-from-real-imag 3 4) (make-complex-from-real-imag 6 8))
+;; . . . . . . . . . . . . . . . . .
+;; I waited 30s or so and then cancelled this.
+
+;;b.
+;; Louis is WRONG.  The procedure would have worked fine as is  - if it
+;; can't find a method for the types or a coercion from one type to another
+;; it will signal "No method for these types".
+
+;;c.
+(define (apply-generic op . args)
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op (car type-tags))))
+      (if proc
+          (apply proc (map contents args))
+          (if (= (length args) 2)
+              (let ((type1 (car type-tags))
+                    (type2 (cadr type-tags))
+                    (a1 (car args))
+                    (a2 (cadr args)))
+                (let ((t1->t2 (get-coercion type1 type2))
+                      (t2->t1 (get-coercion type2 type1)))
+		  ;;BEGIN NEW CODE
+                  (cond ((equal? type1 type2) (error "No method for these types" (list op type-tags)))
+		  ;;END NEW CODE
+			(t1->t2
+                         (apply-generic op (t1->t2 a1) a2))
+                        (t2->t1
+                         (apply-generic op a1 (t2->t1 a2)))
+                        (else
+                         (error "No method for these types"
+                                (list op type-tags))))))
+              (error "No method for these types"
+                     (list op type-tags)))))))
+
+;; 1 ]=> (exp (make-complex-from-real-imag 3 4) (make-complex-from-real-imag 6 8))
+;; No method for these types (exp (complex complex))
