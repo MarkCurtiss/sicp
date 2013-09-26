@@ -222,7 +222,7 @@
 ; 2.78
 ; ========================================================================
 (define (attach-tag type-tag contents)
-  (if (number? contents)
+  (if (integer? contents)
       contents
       (cons type-tag contents)))
 (define (type-tag datum)
@@ -676,7 +676,7 @@
       (cond ((and proc true) (apply proc (map contents args))) ;;we can run it as is
 	    ((all-elements-equal? type-tags) (error "No method for these types" (list op type-tags))) ;; there is no method defined
 	    ((find-conversion type-tags) (apply apply-generic op (convert-all-types (find-conversion type-tags) args))) ;; there is a conversion available
-	    (else (error "No method for these types" (list op type-tags))))))) 
+	    (else (error "No method for these types" (list op type-tags)))))))
 
 ;; (convert-all-types)
 ;; 1 ]=> (convert-all-types (make-scheme-number 8) (map (lambda (x) (make-scheme-number x)) '(1 2 8 3 4)))
@@ -704,3 +704,110 @@
 ;; implemented variable-length arithmetic operators yet. Cool, SICP.
 ;; 1 ]=> (apply-generic 'add (make-scheme-number 8) (make-scheme-number 4) (make-complex-from-real-imag 8 10))
 ;; No method for these types (add (complex complex complex))
+
+; 2.83
+; ========================================================================
+;;We need the old definition of attach-tag so we can create real numbers
+(define (attach-tag type-tag contents)
+  (cons type-tag contents))
+
+(define (install-scheme-number-package)
+  (define (tag x)
+    (attach-tag 'scheme-number x))
+  (put 'add '(scheme-number scheme-number)
+       (lambda (x y) (tag (+ x y))))
+  (put 'sub '(scheme-number scheme-number)
+       (lambda (x y) (tag (- x y))))
+  (put 'mul '(scheme-number scheme-number)
+       (lambda (x y) (tag (* x y))))
+  (put 'div '(scheme-number scheme-number)
+       (lambda (x y) (tag (/ x y))))
+  (put 'make '(scheme-number)
+       (lambda (x) (tag x)))
+  (put 'equ? '(scheme-number scheme-number)
+       (lambda (x y) (= x y)))
+  (put '=zero? '(scheme-number scheme-number)
+       (lambda (x) (= x 0)))
+  (put 'exp '(scheme-number scheme-number)
+     (lambda (x y) (tag (expt x y))))
+;;BEGIN NEW CODE
+  (put 'raise '(scheme-number)
+       (lambda (x) (make-rational x 1)))
+;;END NEW CODE
+  'done)
+
+(define (install-rational-package)
+  ;; internal procedures
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+  (define (make-rat n d)
+    (let ((g (gcd n d)))
+      (cons (/ n g) (/ d g))))
+  (define (add-rat x y)
+    (make-rat (+ (* (numer x) (denom y))
+                 (* (numer y) (denom x)))
+              (* (denom x) (denom y))))
+  (define (sub-rat x y)
+    (make-rat (- (* (numer x) (denom y))
+                 (* (numer y) (denom x)))
+              (* (denom x) (denom y))))
+  (define (mul-rat x y)
+    (make-rat (* (numer x) (numer y))
+              (* (denom x) (denom y))))
+  (define (div-rat x y)
+    (make-rat (* (numer x) (denom y))
+              (* (denom x) (numer y))))
+  ;; interface to rest of the system
+  (define (tag x) (attach-tag 'rational x))
+  (put 'add '(rational rational)
+       (lambda (x y) (tag (add-rat x y))))
+  (put 'sub '(rational rational)
+       (lambda (x y) (tag (sub-rat x y))))
+  (put 'mul '(rational rational)
+       (lambda (x y) (tag (mul-rat x y))))
+  (put 'div '(rational rational)
+       (lambda (x y) (tag (div-rat x y))))
+
+  (put 'make '(rational)
+       (lambda (n d) (tag (make-rat n d))))
+  (define (equ?-rat x y)
+    (and
+     (= (numer x) (numer y))
+     (= (denom x) (denom y))))
+  (put 'equ? '(rational) equ?-rat)
+  (define (=zero?-rat x)
+    (or (= (numer x) 0)
+	(= (denom x) 0)))
+  (put '=zero? '(rational) =zero?-rat)
+;;BEGIN NEW CODE
+  (put 'raise '(rational)
+       (lambda (x) (make-real (/
+			       (numer x)
+			       (denom x)))))
+;;END NEW CODE
+  'done)
+
+(define (install-real-package)
+  (define (tag n) (attach-tag 'real n))
+  (put 'make '(real)
+       (lambda (z) (tag z)))
+  (put 'raise '(real)
+       (lambda (z) (make-complex-from-real-imag z 0)))
+  'done)
+
+(define (make-real n)
+  ((get 'make '(real)) n))
+
+(install-scheme-number-package)
+(install-rational-package)
+(install-real-package)
+(install-complex-package)
+
+(define (raise x) (apply-generic 'raise x))
+
+;; 1 ]=> (raise (make-scheme-number 8))
+;; Value 100: (rational 8 . 1)
+;; 1 ]=> (raise (raise (make-scheme-number 8)))
+;; Value 211: (real . 8)
+;; 1 ]=> (raise (raise (raise (make-scheme-number 8))))
+;; Value 212: (complex rectangular 8 . 0)
