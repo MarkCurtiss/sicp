@@ -1,7 +1,10 @@
 ; 2.77
 ; ========================================================================
 (define put 2d-put!)
-(define get 2d-get)
+(define (get x-key y-key)
+  (let ((1d-table (2d-get-alist-x x-key)))
+    (let ((type-f (assoc y-key 1d-table)))
+      (if type-f (cdr type-f) false))))
 
 (define (attach-tag type-tag contents)
   (cons type-tag contents))
@@ -538,12 +541,12 @@
 
 ; 2.81
 ; ========================================================================
-(define put-coercion 2d-put!)
-(define get-coercion 2d-get)
+(define put-coercion put)
+(define get-coercion get)
 
 (define (apply-generic op . args)
   (let ((type-tags (map type-tag args)))
-    (let ((proc (get op (car type-tags))))
+    (let ((proc (get op type-tags)))
       (if proc
           (apply proc (map contents args))
           (if (= (length args) 2)
@@ -616,7 +619,7 @@
 ;;c.
 (define (apply-generic op . args)
   (let ((type-tags (map type-tag args)))
-    (let ((proc (get op (car type-tags))))
+    (let ((proc (get op type-tags)))
       (if proc
           (apply proc (map contents args))
           (if (= (length args) 2)
@@ -641,3 +644,63 @@
 
 ;; 1 ]=> (exp (make-complex-from-real-imag 3 4) (make-complex-from-real-imag 6 8))
 ;; No method for these types (exp (complex complex))
+
+; 2.82
+; ========================================================================
+(define (apply-generic op . args)
+  (define (all-elements-equal? elements)
+     (every (lambda (x) (equal? x (car elements))) elements))
+
+  (define (can-convert-all-types? target-type types)
+    ;; Really what I want to say is (every defined ...), but I can't.
+    (every (lambda (x) (and x true))
+	   (map (lambda (type) (get-coercion type target-type)) types)))
+
+  (define (convert-all-types target-type args)
+    (let ((type-tags (map type-tag args)))
+      (if (can-convert-all-types? target-type type-tags)
+	  (map (lambda (x) ((get-coercion (type-tag x) target-type) x)) args)
+	  false)))
+
+  (define (find-conversion types)
+    (define (iter remaining)
+      (cond ((null? remaining) false)
+	    ((can-convert-all-types? (car remaining) types) (car remaining))
+	    (else (iter (cdr remaining)))))
+
+    (iter types))
+
+
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (cond ((and proc true) (apply proc (map contents args))) ;;we can run it as is
+	    ((all-elements-equal? type-tags) (error "No method for these types" (list op type-tags))) ;; there is no method defined
+	    ((find-conversion type-tags) (apply apply-generic op (convert-all-types (find-conversion type-tags) args))) ;; there is a conversion available
+	    (else (error "No method for these types" (list op type-tags))))))) 
+
+;; (convert-all-types)
+;; 1 ]=> (convert-all-types (make-scheme-number 8) (map (lambda (x) (make-scheme-number x)) '(1 2 8 3 4)))
+;; Value 246: (1 2 8 3 4)
+;; 1 ]=> (convert-all-types (make-scheme-number 8) (map (lambda (x) (make-complex-from-real-imag x (+ x 4))) '(1 2 8 3 4)))
+;; Value: #f
+;; 1 ]=>  (convert-all-types (make-complex-from-real-imag 8 10) (map (lambda (x) (make-scheme-number x)) '(1 2 8 3 4)))
+;; Value 24: ((complex rectangular 1 . 0) (complex rectangular 2 . 0) (complex rectangular 8 . 0) (complex rectangular 3 . 0) (complex rectangular 4 . 0))
+;; 1 ]=>  (convert-all-types (make-complex-from-real-imag 8 10) (append (map (lambda (x) (make-scheme-number x)) '(1 2 3)) (map (lambda (x) (make-complex-from-real-imag x (+ x 4))) '(1 2 3))))
+;; Value 30: ((complex rectangular 1 . 0) (complex rectangular 2 . 0) (complex rectangular 3 . 0) (complex rectangular 1 . 5) (complex rectangular 2 . 6) (complex rectangular 3 . 7))
+
+;; (find-conversion)
+;; 1 ]=> (find-conversion '(complex scheme-number scheme-number complex))
+;;Value: complex
+;; 1 ]=> (find-conversion '(complex scheme-number rational))
+;; Value: #f
+;; 1 ]=> (find-conversion '(complex scheme-number rational complex))
+;; Value: #f
+
+(define (scheme-number->complex n)
+  (make-complex-from-real-imag (contents n) 0))
+(put-coercion 'scheme-number 'complex scheme-number->complex)
+
+;; Well. . .success?  It converted everything properly, but we haven't
+;; implemented variable-length arithmetic operators yet. Cool, SICP.
+;; 1 ]=> (apply-generic 'add (make-scheme-number 8) (make-scheme-number 4) (make-complex-from-real-imag 8 10))
+;; No method for these types (add (complex complex complex))
