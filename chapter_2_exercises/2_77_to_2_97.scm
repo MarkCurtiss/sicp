@@ -688,3 +688,122 @@
 ;; No method for these types (add (complex complex complex))
 ;; 1 ]=> (apply-generic 'add (make-scheme-number 8) (make-rational 3 8))
 ;; Value 125: (rational 67 . 8)
+
+
+; 2.85
+; ========================================================================
+(define (project x)
+  (apply-generic 'project x))
+
+(define _2_84-install-scheme-number-package_ install-scheme-number-package)
+(define (install-scheme-number-package)
+  (_2_84-install-scheme-number-package_)
+
+  (put 'project '(scheme-number) (lambda (x) false))
+
+  'done)
+
+(define _2_84-install-rational-package_ install-rational-package)
+(define (install-rational-package)
+  (_2_84-install-rational-package_)
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+
+  (put 'project '(rational)
+       (lambda (x)
+	 (make-scheme-number (round (/ (numer x) (denom x))))))
+
+  'done)
+
+(define _2_84-install-real-package_ install-real-package)
+(define (install-real-package)
+  (_2_84-install-real-package_)
+
+  (put 'equ? '(real real) (lambda (x y) (= x y)))
+
+  (put 'project '(real)
+       (lambda (x)
+	 (make-rational (inexact->exact (round x))
+			1)))
+
+  'done)
+
+(define _2_84-install-complex-package_ install-complex-package)
+(define (install-complex-package)
+  (_2_84-install-complex-package_)
+
+  (put 'real-part '(complex) real-part)
+
+  (put 'project '(complex)
+       (lambda (x) (make-real (real-part x))))
+
+  'done)
+
+(install-scheme-number-package)
+(install-rational-package)
+(install-real-package)
+(install-rectangular-package)
+(install-complex-package)
+
+;; 1 ]=> (project (make-complex-from-real-imag 3 8))
+;; Value 781: (real . 3)
+;; 1 ]=> (project (project (make-complex-from-real-imag 3 8)))
+;; Value 782: (rational 3 . 1)
+;; 1 ]=> (project (project (project (make-complex-from-real-imag 3 8))))
+;; Value 833: (scheme-number . 3)
+
+(define (drop x)
+  (define (iter previous-value dropped-value)
+    (cond ((not dropped-value) previous-value)
+	  ((equ? (raise dropped-value) previous-value) (iter dropped-value (project dropped-value)))
+	  (else previous-value)))
+
+  (if (pair? x)
+      (iter x (project x))
+      x))
+
+
+;; 1 ]=> (drop (make-complex-from-real-imag 1.5 0))
+;; Value 1151: (real . 1.5)
+;; 1 ]=> (drop (make-complex-from-real-imag 1 0))
+;; Value 1152: (scheme-number . 1)
+;; 1 ]=> (drop (make-complex-from-real-imag 2 3))
+;; Value 1153: (complex rectangular 2 . 3)
+
+(define (apply-generic op . args)
+  (define (all-types-equal? types)
+     (every (lambda (x) (= (<=> x (car types)) 0)) types))
+
+  (define (convert-all-types target-type args)
+    (define (successive-raise x)
+      (if (equal? (type-tag x) target-type)
+	  x
+	  (successive-raise (raise x))))
+
+    (map successive-raise args))
+
+  (define (find-max-type types)
+    (define (iter remaining max-type)
+      (cond ((null? remaining) max-type)
+	    ((= (<=> (car remaining) max-type) 1) (iter (cdr remaining) (car remaining)))
+	    (else (iter (cdr remaining) max-type))))
+
+    (iter types (car types)))
+
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (if (and proc (= (length type-tags) 1))
+	  (apply proc (map contents args)) ;;this is a predicate and needs no simplification
+      (cond ((and proc) (drop (apply proc (map contents args))))
+	    ((all-types-equal? type-tags) (error "No method for these types" (list op type-tags)))
+	    (else (apply apply-generic op (convert-all-types (find-max-type type-tags) args))))))))
+
+
+;; 1 ]=> (=zero? (make-rational 8 3))
+;; Value: #f
+;; 1 ]=> (equ? (make-rational 22 1) (make-rational 22 1))
+;; Value: #t
+;; 1 ]=> (apply-generic 'add (make-rational 8 1) (make-rational 14 1))
+;; Value 1482: (scheme-number . 22)
+;; 1 ]=> (apply-generic 'add (make-rational 8 1) (make-rational 14 3))
+;; Value 1483: (rational 38 . 3)
