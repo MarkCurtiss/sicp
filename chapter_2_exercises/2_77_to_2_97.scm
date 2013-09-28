@@ -782,7 +782,7 @@
 ;;BEGIN NEW CODE
   (put 'raise '(rational)
        (lambda (x) (make-real (/
-			       (numer x)
+			       (* (numer x) 1.0)
 			       (denom x)))))
 ;;END NEW CODE
   'done)
@@ -811,3 +811,110 @@
 ;; Value 211: (real . 8)
 ;; 1 ]=> (raise (raise (raise (make-scheme-number 8))))
 ;; Value 212: (complex rectangular 8 . 0)
+
+; 2.84
+; ========================================================================
+(define (<=> type1 type2)
+  ((get '<=> (list type1)) type2))
+
+(define _old-install-scheme-number-package_ install-scheme-number-package)
+(define (install-scheme-number-package)
+  (_old-install-scheme-number-package_)
+
+  (define (cmp type)
+    (if (equal? type 'scheme-number)
+	0
+	-1))
+
+  (put '<=> '(scheme-number) cmp)
+  'done)
+
+(define _old-install-rational-number-package_ install-rational-package)
+(define (install-rational-package)
+  (_old-install-rational-number-package_)
+
+  (define (cmp type)
+    (cond ((equal? type 'scheme-number) 1)
+	  ((equal? type 'rational) 0)
+	  (else -1)))
+
+  (put '<=> '(rational) cmp)
+  'done)
+
+(define _old-install-real-package_ install-real-package)
+(define (install-real-package)
+  (_old-install-real-package_)
+
+  (define (cmp type)
+    (cond ((equal? type 'complex) -1)
+	  ((equal? type 'real) 0)
+	  (else 1)))
+
+  (put '<=> '(real) cmp)
+  'done)
+
+(define _old-install-complex-package_ install-complex-package)
+(define (install-complex-package)
+  (_old-install-complex-package_)
+
+  (define (cmp type)
+    (if (equal? type 'complex)
+	0
+	1))
+
+  (put '<=> '(complex) cmp)
+  'done)
+
+(install-scheme-number-package)
+(install-rational-package)
+(install-real-package)
+(install-complex-package)
+
+;; 1 ]=> (<=> 'rational 'scheme-number)
+;; Value: 1
+;; 1 ]=> (<=> 'rational 'real)
+;; Value: -1
+;; 1 ]=> (<=> 'complex 'complex)
+;; Value: 0
+;; 1 ]=> (<=> 'real 'complex)
+;; Value: -1
+
+(define (apply-generic op . args)
+  (define (all-types-equal? types)
+     (every (lambda (x) (= (<=> x (car types)) 0)) types))
+
+  (define (convert-all-types target-type args)
+    (define (successive-raise x)
+      (if (equal? (type-tag x) target-type)
+	  x
+	  (successive-raise (raise x))))
+
+    (map successive-raise args))
+
+  (define (find-max-type types)
+    (define (iter remaining max-type)
+      (cond ((null? remaining) max-type)
+	    ((= (<=> (car remaining) max-type) 1) (iter (cdr remaining) (car remaining)))
+	    (else (iter (cdr remaining) max-type))))
+
+    (iter types (car types)))
+
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
+      (cond ((and proc true) (apply proc (map contents args))) ;;we can run it as is
+	    ((all-types-equal? type-tags) (error "No method for these types" (list op type-tags))) ;; there is no method defined
+	    (else (apply apply-generic op (convert-all-types (find-max-type type-tags) args))))))) ;; raise all types
+
+
+;; 1 ]=> (find-max-type '(scheme-number rational real))
+;; Value: real
+;; 1 ]=> (find-max-type '(rational complex real complex))
+;; Value: complex
+
+;; 1 ]=> (convert-all-types 'real (list (make-scheme-number 8) (make-rational 3 8) (make-real 2.3) (make-scheme-number 4)))
+;; Value 75: ((real . 8.) (real . .375) (real . 2.3) (real . 4.))
+
+;; 1 ]=> (apply-generic 'add (make-scheme-number 8) (make-scheme-number 4) (make-complex-from-real-imag 8 10))
+;; No method for these types (add (complex complex complex))
+;; 1 ]=> (apply-generic 'add (make-scheme-number 8) (make-rational 3 8))
+;; Value 125: (rational 67 . 8)
