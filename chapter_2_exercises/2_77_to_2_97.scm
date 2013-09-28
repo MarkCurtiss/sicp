@@ -25,13 +25,13 @@
 (define (install-scheme-number-package)
   (define (tag x)
     (attach-tag 'scheme-number x))
-  (put 'add 'scheme-number
+  (put 'add '(scheme-number scheme-number)
        (lambda (x y) (tag (+ x y))))
-  (put 'sub 'scheme-number
+  (put 'sub '(scheme-number scheme-number)
        (lambda (x y) (tag (- x y))))
-  (put 'mul 'scheme-number
+  (put 'mul '(scheme-number scheme-number)
        (lambda (x y) (tag (* x y))))
-  (put 'div 'scheme-number
+  (put 'div '(scheme-number scheme-number)
        (lambda (x y) (tag (/ x y))))
   (put 'make 'scheme-number
        (lambda (x) (tag x)))
@@ -39,7 +39,6 @@
 
 (define (make-scheme-number n)
   ((get 'make 'scheme-number) n))
-
 
 (define (install-rational-package)
   ;; internal procedures
@@ -64,19 +63,18 @@
               (* (denom x) (numer y))))
   ;; interface to rest of the system
   (define (tag x) (attach-tag 'rational x))
-  (put 'add 'rational
+  (put 'add '(rational rational)
        (lambda (x y) (tag (add-rat x y))))
-  (put 'sub 'rational
+  (put 'sub '(rational rational)
        (lambda (x y) (tag (sub-rat x y))))
-  (put 'mul 'rational
+  (put 'mul '(rational rational)
        (lambda (x y) (tag (mul-rat x y))))
-  (put 'div 'rational
+  (put 'div '(rational rational)
        (lambda (x y) (tag (div-rat x y))))
 
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   'done)
-
 (define (make-rational n d)
   ((get 'make 'rational) n d))
 
@@ -94,10 +92,10 @@
     (cons (* r (cos a)) (* r (sin a))))
   ;; interface to the rest of the system
   (define (tag x) (attach-tag 'rectangular x))
-  (put 'real-part 'rectangular real-part)
-  (put 'imag-part 'rectangular imag-part)
-  (put 'magnitude 'rectangular magnitude)
-  (put 'angle 'rectangular angle)
+  (put 'real-part '(rectangular) real-part)
+  (put 'imag-part '(rectangular) imag-part)
+  (put 'magnitude '(rectangular) magnitude)
+  (put 'angle '(rectangular) angle)
   (put 'make-from-real-imag 'rectangular
        (lambda (x y) (tag (make-from-real-imag x y))))
   (put 'make-from-mag-ang 'rectangular
@@ -118,15 +116,20 @@
           (atan y x)))
   ;; interface to the rest of the system
   (define (tag x) (attach-tag 'polar x))
-  (put 'real-part 'polar real-part)
-  (put 'imag-part 'polar imag-part)
-  (put 'magnitude 'polar magnitude)
-  (put 'angle 'polar angle)
+  (put 'real-part '(polar) real-part)
+  (put 'imag-part '(polar) imag-part)
+  (put 'magnitude '(polar) magnitude)
+  (put 'angle '(polar) angle)
   (put 'make-from-real-imag 'polar
        (lambda (x y) (tag (make-from-real-imag x y))))
   (put 'make-from-mag-ang 'polar
        (lambda (r a) (tag (make-from-mag-ang r a))))
   'done)
+
+(define (real-part z) (apply-generic 'real-part z))
+(define (imag-part z) (apply-generic 'imag-part z))
+(define (magnitude z) (apply-generic 'magnitude z))
+(define (angle z) (apply-generic 'angle z))
 
 (define (install-complex-package)
   ;; imported procedures from rectangular and polar packages
@@ -149,22 +152,22 @@
                        (- (angle z1) (angle z2))))
   ;; interface to rest of the system
   (define (tag z) (attach-tag 'complex z))
-  (put 'add 'complex
+  (put 'add '(complex complex)
        (lambda (z1 z2) (tag (add-complex z1 z2))))
-  (put 'sub 'complex
+  (put 'sub '(complex complex)
        (lambda (z1 z2) (tag (sub-complex z1 z2))))
-  (put 'mul 'complex
+  (put 'mul '(complex complex)
        (lambda (z1 z2) (tag (mul-complex z1 z2))))
-  (put 'div 'complex
+  (put 'div '(complex complex)
        (lambda (z1 z2) (tag (div-complex z1 z2))))
   (put 'make-from-real-imag 'complex
        (lambda (x y) (tag (make-from-real-imag x y))))
   (put 'make-from-mag-ang 'complex
        (lambda (r a) (tag (make-from-mag-ang r a))))
-  (put 'real-part 'complex real-part)
-  (put 'imag-part 'complex imag-part)
-  (put 'magnitude 'complex magnitude)
-  (put 'angle 'complex angle)
+  (put 'real-part '(complex) real-part)
+  (put 'imag-part '(complex) imag-part)
+  (put 'magnitude '(complex) magnitude)
+  (put 'angle '(complex) angle)
   'done)
 
 (define (make-complex-from-real-imag x y)
@@ -179,14 +182,13 @@
 (install-complex-package)
 
 (define (apply-generic op . args)
-  (let ((type-tag (type-tag (car args))))
-    (let ((proc (get op type-tag)))
+  (let ((type-tags (map type-tag args)))
+    (let ((proc (get op type-tags)))
       (if proc
           (apply proc (map contents args))
           (error
             "No method for these types -- APPLY-GENERIC"
-            (list op type-tag))))))
-
+            (list op type-tags))))))
 
 ;; 1 ]=> (add (make-complex-from-real-imag 3 6) (make-complex-from-real-imag 2 8))
 ;; Value 185: (complex rectangular 5 . 14)
@@ -247,116 +249,40 @@
 ; ========================================================================
 (define (equ? x y) (apply-generic 'equ? x y))
 
+(define _2_77-install-scheme-number-package install-scheme-number-package)
 (define (install-scheme-number-package)
-  (define (tag x)
-    (attach-tag 'scheme-number x))
-  (put 'add 'scheme-number
-       (lambda (x y) (tag (+ x y))))
-  (put 'sub 'scheme-number
-       (lambda (x y) (tag (- x y))))
-  (put 'mul 'scheme-number
-       (lambda (x y) (tag (* x y))))
-  (put 'div 'scheme-number
-       (lambda (x y) (tag (/ x y))))
-  (put 'make 'scheme-number
-       (lambda (x) (tag x)))
+  (_2_77-install-scheme-number-package)
 
-;;BEGIN NEW CODE
-  (put 'equ? 'scheme-number
+  (put 'equ? '(scheme-number scheme-number)
        (lambda (x y) (= x y)))
-;;END NEW CODE
+
   'done)
 
+(define _2_77-install-rational-package install-rational-package)
 (define (install-rational-package)
-  ;; internal procedures
+  (_2_77-install-rational-package)
   (define (numer x) (car x))
   (define (denom x) (cdr x))
-  (define (make-rat n d)
-    (let ((g (gcd n d)))
-      (cons (/ n g) (/ d g))))
-  (define (add-rat x y)
-    (make-rat (+ (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
-  (define (sub-rat x y)
-    (make-rat (- (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
-  (define (mul-rat x y)
-    (make-rat (* (numer x) (numer y))
-              (* (denom x) (denom y))))
-  (define (div-rat x y)
-    (make-rat (* (numer x) (denom y))
-              (* (denom x) (numer y))))
-  ;; interface to rest of the system
-  (define (tag x) (attach-tag 'rational x))
-  (put 'add 'rational
-       (lambda (x y) (tag (add-rat x y))))
-  (put 'sub 'rational
-       (lambda (x y) (tag (sub-rat x y))))
-  (put 'mul 'rational
-       (lambda (x y) (tag (mul-rat x y))))
-  (put 'div 'rational
-       (lambda (x y) (tag (div-rat x y))))
 
-  (put 'make 'rational
-       (lambda (n d) (tag (make-rat n d))))
-
-;;BEGIN NEW CODE
   (define (equ?-rat x y)
     (and
      (= (numer x) (numer y))
      (= (denom x) (denom y))))
-  (put 'equ? 'rational equ?-rat)
-;;END NEW CODE
+  (put 'equ? '(rational rational) equ?-rat)
+
   'done)
 
+(define _2_77-install-complex-package install-complex-package)
 (define (install-complex-package)
-  ;; imported procedures from rectangular and polar packages
-  (define (make-from-real-imag x y)
-    ((get 'make-from-real-imag 'rectangular) x y))
-  (define (make-from-mag-ang r a)
-    ((get 'make-from-mag-ang 'polar) r a))
-  ;; internal procedures
-  (define (add-complex z1 z2)
-    (make-from-real-imag (+ (real-part z1) (real-part z2))
-                         (+ (imag-part z1) (imag-part z2))))
-  (define (sub-complex z1 z2)
-    (make-from-real-imag (- (real-part z1) (real-part z2))
-                         (- (imag-part z1) (imag-part z2))))
-  (define (mul-complex z1 z2)
-    (make-from-mag-ang (* (magnitude z1) (magnitude z2))
-                       (+ (angle z1) (angle z2))))
-  (define (div-complex z1 z2)
-    (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
-                       (- (angle z1) (angle z2))))
-  ;; interface to rest of the system
-  (define (tag z) (attach-tag 'complex z))
-  (put 'add 'complex
-       (lambda (z1 z2) (tag (add-complex z1 z2))))
-  (put 'sub 'complex
-       (lambda (z1 z2) (tag (sub-complex z1 z2))))
-  (put 'mul 'complex
-       (lambda (z1 z2) (tag (mul-complex z1 z2))))
-  (put 'div 'complex
-       (lambda (z1 z2) (tag (div-complex z1 z2))))
-  (put 'make-from-real-imag 'complex
-       (lambda (x y) (tag (make-from-real-imag x y))))
-  (put 'make-from-mag-ang 'complex
-       (lambda (r a) (tag (make-from-mag-ang r a))))
-  (put 'real-part 'complex real-part)
-  (put 'imag-part 'complex imag-part)
-  (put 'magnitude 'complex magnitude)
-  (put 'angle 'complex angle)
-;;BEGIN NEW CODE
+  (_2_77-install-complex-package)
+
   (define (equ?-complex x y)
     (and
      (= (real-part x) (real-part y))
      (= (imag-part x) (imag-part y))))
-  (put 'equ? 'complex equ?-complex)
-;;END NEW CODE
-  'done)
+  (put 'equ? '(complex complex) equ?-complex)
 
+  'done)
 
 (install-scheme-number-package)
 ;; 1 ]=> (equ? (make-scheme-number 8) (make-scheme-number 8))
@@ -384,128 +310,40 @@
 ; ========================================================================
 (define (=zero? x) (apply-generic '=zero? x))
 
+(define _2_79-install-scheme-number-package install-scheme-number-package)
 (define (install-scheme-number-package)
-  (define (tag x)
-    (attach-tag 'scheme-number x))
-  (put 'add 'scheme-number
-       (lambda (x y) (tag (+ x y))))
-  (put 'sub 'scheme-number
-       (lambda (x y) (tag (- x y))))
-  (put 'mul 'scheme-number
-       (lambda (x y) (tag (* x y))))
-  (put 'div 'scheme-number
-       (lambda (x y) (tag (/ x y))))
-  (put 'make 'scheme-number
-       (lambda (x) (tag x)))
-  (put 'equ? 'scheme-number
-       (lambda (x y) (= x y)))
-;;BEGIN NEW CODE
-  (put '=zero? 'scheme-number
+  (_2_79-install-scheme-number-package)
+
+  (put '=zero? '(scheme-number)
        (lambda (x) (= x 0)))
-;;END NEW CODE
+
   'done)
 
+(define _2_79-install-rational-package install-rational-package)
 (define (install-rational-package)
-  ;; internal procedures
+  (_2_79-install-rational-package)
   (define (numer x) (car x))
   (define (denom x) (cdr x))
-  (define (make-rat n d)
-    (let ((g (gcd n d)))
-      (cons (/ n g) (/ d g))))
-  (define (add-rat x y)
-    (make-rat (+ (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
-  (define (sub-rat x y)
-    (make-rat (- (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
-  (define (mul-rat x y)
-    (make-rat (* (numer x) (numer y))
-              (* (denom x) (denom y))))
-  (define (div-rat x y)
-    (make-rat (* (numer x) (denom y))
-              (* (denom x) (numer y))))
-  ;; interface to rest of the system
-  (define (tag x) (attach-tag 'rational x))
-  (put 'add 'rational
-       (lambda (x y) (tag (add-rat x y))))
-  (put 'sub 'rational
-       (lambda (x y) (tag (sub-rat x y))))
-  (put 'mul 'rational
-       (lambda (x y) (tag (mul-rat x y))))
-  (put 'div 'rational
-       (lambda (x y) (tag (div-rat x y))))
 
-  (put 'make 'rational
-       (lambda (n d) (tag (make-rat n d))))
-  (define (equ?-rat x y)
-    (and
-     (= (numer x) (numer y))
-     (= (denom x) (denom y))))
-  (put 'equ? 'rational equ?-rat)
-;;BEGIN NEW CODE
   (define (=zero?-rat x)
     (or (= (numer x) 0)
 	(= (denom x) 0))) ;;Technically this is illegal!
 			  ;;But our implementation allows it, so.
-  (put '=zero? 'rational =zero?-rat)
-;;END NEW CODE
+  (put '=zero? '(rational) =zero?-rat)
+
   'done)
 
+(define _2_79-install-complex-package install-complex-package)
 (define (install-complex-package)
-  ;; imported procedures from rectangular and polar packages
-  (define (make-from-real-imag x y)
-    ((get 'make-from-real-imag 'rectangular) x y))
-  (define (make-from-mag-ang r a)
-    ((get 'make-from-mag-ang 'polar) r a))
-  ;; internal procedures
-  (define (add-complex z1 z2)
-    (make-from-real-imag (+ (real-part z1) (real-part z2))
-                         (+ (imag-part z1) (imag-part z2))))
-  (define (sub-complex z1 z2)
-    (make-from-real-imag (- (real-part z1) (real-part z2))
-                         (- (imag-part z1) (imag-part z2))))
-  (define (mul-complex z1 z2)
-    (make-from-mag-ang (* (magnitude z1) (magnitude z2))
-                       (+ (angle z1) (angle z2))))
-  (define (div-complex z1 z2)
-    (make-from-mag-ang (/ (magnitude z1) (magnitude z2))
-                       (- (angle z1) (angle z2))))
-  ;; interface to rest of the system
-  (define (tag z) (attach-tag 'complex z))
-  (put 'add 'complex
-       (lambda (z1 z2) (tag (add-complex z1 z2))))
-  (put 'sub 'complex
-       (lambda (z1 z2) (tag (sub-complex z1 z2))))
-  (put 'mul 'complex
-       (lambda (z1 z2) (tag (mul-complex z1 z2))))
-  (put 'div 'complex
-       (lambda (z1 z2) (tag (div-complex z1 z2))))
-  (put 'make-from-real-imag 'complex
-       (lambda (x y) (tag (make-from-real-imag x y))))
-  (put 'make-from-mag-ang 'complex
-       (lambda (r a) (tag (make-from-mag-ang r a))))
-  (put 'real-part 'complex real-part)
-  (put 'imag-part 'complex imag-part)
-  (put 'magnitude 'complex magnitude)
-  (put 'angle 'complex angle)
+  (_2_79-install-complex-package)
 
-  (define (equ?-complex x y)
-    (and
-     (= (real-part x) (real-part y))
-     (= (imag-part x) (imag-part y))))
-  (put 'equ? 'complex equ?-complex)
-;;BEGIN NEW CODE
   (define (=zero?-complex x)
     (and
      (= (real-part x) 0)
      (= (imag-part x) 0)))
-  (put '=zero? 'complex =zero?-complex)
-;;END NEW CODE
+  (put '=zero? '(complex) =zero?-complex)
+
   'done)
-
-
 
 (install-scheme-number-package)
 ;; 1 ]=> (=zero? (make-scheme-number 8))
@@ -583,27 +421,13 @@
 
 (define (exp x y) (apply-generic 'exp x y))
 
+(define _2_80-install-scheme-number-package install-scheme-number-package)
 (define (install-scheme-number-package)
-  (define (tag x)
-    (attach-tag 'scheme-number x))
-  (put 'add 'scheme-number
-       (lambda (x y) (tag (+ x y))))
-  (put 'sub 'scheme-number
-       (lambda (x y) (tag (- x y))))
-  (put 'mul 'scheme-number
-       (lambda (x y) (tag (* x y))))
-  (put 'div 'scheme-number
-       (lambda (x y) (tag (/ x y))))
-  (put 'make 'scheme-number
-       (lambda (x) (tag x)))
-  (put 'equ? 'scheme-number
-       (lambda (x y) (= x y)))
-  (put '=zero? 'scheme-number
-       (lambda (x) (= x 0)))
-;;BEGIN NEW CODE
+  (_2_80-install-scheme-number-package)
+
   (put 'exp '(scheme-number scheme-number)
      (lambda (x y) (tag (expt x y)))) ; using primitive expt
-;;END NEW CODE
+
   'done)
 
 (install-scheme-number-package)
@@ -678,14 +502,18 @@
 	    ((find-conversion type-tags) (apply apply-generic op (convert-all-types (find-conversion type-tags) args))) ;; there is a conversion available
 	    (else (error "No method for these types" (list op type-tags)))))))
 
+(define (scheme-number->complex n)
+  (make-complex-from-real-imag (contents n) 0))
+(put-coercion 'scheme-number 'complex scheme-number->complex)
+
 ;; (convert-all-types)
-;; 1 ]=> (convert-all-types (make-scheme-number 8) (map (lambda (x) (make-scheme-number x)) '(1 2 8 3 4)))
+;; 1 ]=> (convert-all-types 'scheme-number (map (lambda (x) (make-scheme-number x)) '(1 2 8 3 4)))
 ;; Value 246: (1 2 8 3 4)
-;; 1 ]=> (convert-all-types (make-scheme-number 8) (map (lambda (x) (make-complex-from-real-imag x (+ x 4))) '(1 2 8 3 4)))
+;; 1 ]=> (convert-all-types 'scheme-number (map (lambda (x) (make-complex-from-real-imag x (+ x 4))) '(1 2 8 3 4)))
 ;; Value: #f
-;; 1 ]=>  (convert-all-types (make-complex-from-real-imag 8 10) (map (lambda (x) (make-scheme-number x)) '(1 2 8 3 4)))
+;; 1 ]=>  (convert-all-types 'complex (map (lambda (x) (make-scheme-number x)) '(1 2 8 3 4)))
 ;; Value 24: ((complex rectangular 1 . 0) (complex rectangular 2 . 0) (complex rectangular 8 . 0) (complex rectangular 3 . 0) (complex rectangular 4 . 0))
-;; 1 ]=>  (convert-all-types (make-complex-from-real-imag 8 10) (append (map (lambda (x) (make-scheme-number x)) '(1 2 3)) (map (lambda (x) (make-complex-from-real-imag x (+ x 4))) '(1 2 3))))
+;; 1 ]=>  (convert-all-types 'complex (append (map (lambda (x) (make-scheme-number x)) '(1 2 3)) (map (lambda (x) (make-complex-from-real-imag x (+ x 4))) '(1 2 3))))
 ;; Value 30: ((complex rectangular 1 . 0) (complex rectangular 2 . 0) (complex rectangular 3 . 0) (complex rectangular 1 . 5) (complex rectangular 2 . 6) (complex rectangular 3 . 7))
 
 ;; (find-conversion)
@@ -696,9 +524,6 @@
 ;; 1 ]=> (find-conversion '(complex scheme-number rational complex))
 ;; Value: #f
 
-(define (scheme-number->complex n)
-  (make-complex-from-real-imag (contents n) 0))
-(put-coercion 'scheme-number 'complex scheme-number->complex)
 
 ;; Well. . .success?  It converted everything properly, but we haven't
 ;; implemented variable-length arithmetic operators yet. Cool, SICP.
@@ -711,80 +536,25 @@
 (define (attach-tag type-tag contents)
   (cons type-tag contents))
 
+(define _2_81-install-scheme-number-package install-scheme-number-package)
 (define (install-scheme-number-package)
-  (define (tag x)
-    (attach-tag 'scheme-number x))
-  (put 'add '(scheme-number scheme-number)
-       (lambda (x y) (tag (+ x y))))
-  (put 'sub '(scheme-number scheme-number)
-       (lambda (x y) (tag (- x y))))
-  (put 'mul '(scheme-number scheme-number)
-       (lambda (x y) (tag (* x y))))
-  (put 'div '(scheme-number scheme-number)
-       (lambda (x y) (tag (/ x y))))
-  (put 'make '(scheme-number)
-       (lambda (x) (tag x)))
-  (put 'equ? '(scheme-number scheme-number)
-       (lambda (x y) (= x y)))
-  (put '=zero? '(scheme-number scheme-number)
-       (lambda (x) (= x 0)))
-  (put 'exp '(scheme-number scheme-number)
-     (lambda (x y) (tag (expt x y))))
-;;BEGIN NEW CODE
+  (_2_81-install-scheme-number-package)
+
   (put 'raise '(scheme-number)
        (lambda (x) (make-rational x 1)))
-;;END NEW CODE
+
   'done)
 
+(define _2_80-install-rational-package install-rational-package)
 (define (install-rational-package)
-  ;; internal procedures
+  (_2_80-install-rational-package)
   (define (numer x) (car x))
   (define (denom x) (cdr x))
-  (define (make-rat n d)
-    (let ((g (gcd n d)))
-      (cons (/ n g) (/ d g))))
-  (define (add-rat x y)
-    (make-rat (+ (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
-  (define (sub-rat x y)
-    (make-rat (- (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
-  (define (mul-rat x y)
-    (make-rat (* (numer x) (numer y))
-              (* (denom x) (denom y))))
-  (define (div-rat x y)
-    (make-rat (* (numer x) (denom y))
-              (* (denom x) (numer y))))
-  ;; interface to rest of the system
-  (define (tag x) (attach-tag 'rational x))
-  (put 'add '(rational rational)
-       (lambda (x y) (tag (add-rat x y))))
-  (put 'sub '(rational rational)
-       (lambda (x y) (tag (sub-rat x y))))
-  (put 'mul '(rational rational)
-       (lambda (x y) (tag (mul-rat x y))))
-  (put 'div '(rational rational)
-       (lambda (x y) (tag (div-rat x y))))
 
-  (put 'make '(rational)
-       (lambda (n d) (tag (make-rat n d))))
-  (define (equ?-rat x y)
-    (and
-     (= (numer x) (numer y))
-     (= (denom x) (denom y))))
-  (put 'equ? '(rational) equ?-rat)
-  (define (=zero?-rat x)
-    (or (= (numer x) 0)
-	(= (denom x) 0)))
-  (put '=zero? '(rational) =zero?-rat)
-;;BEGIN NEW CODE
   (put 'raise '(rational)
        (lambda (x) (make-real (/
 			       (* (numer x) 1.0)
 			       (denom x)))))
-;;END NEW CODE
   'done)
 
 (define (install-real-package)
@@ -808,18 +578,18 @@
 ;; 1 ]=> (raise (make-scheme-number 8))
 ;; Value 100: (rational 8 . 1)
 ;; 1 ]=> (raise (raise (make-scheme-number 8)))
-;; Value 211: (real . 8)
+;; Value 211: (real . 8.)
 ;; 1 ]=> (raise (raise (raise (make-scheme-number 8))))
-;; Value 212: (complex rectangular 8 . 0)
+;; Value 212: (complex rectangular 8. . 0)
 
 ; 2.84
 ; ========================================================================
 (define (<=> type1 type2)
   ((get '<=> (list type1)) type2))
 
-(define _old-install-scheme-number-package_ install-scheme-number-package)
+(define _2_83-install-scheme-number-package_ install-scheme-number-package)
 (define (install-scheme-number-package)
-  (_old-install-scheme-number-package_)
+  (_2_83-install-scheme-number-package_)
 
   (define (cmp type)
     (if (equal? type 'scheme-number)
@@ -829,9 +599,9 @@
   (put '<=> '(scheme-number) cmp)
   'done)
 
-(define _old-install-rational-number-package_ install-rational-package)
+(define _2_83-install-rational-number-package_ install-rational-package)
 (define (install-rational-package)
-  (_old-install-rational-number-package_)
+  (_2_83-install-rational-number-package_)
 
   (define (cmp type)
     (cond ((equal? type 'scheme-number) 1)
@@ -841,9 +611,9 @@
   (put '<=> '(rational) cmp)
   'done)
 
-(define _old-install-real-package_ install-real-package)
+(define _2_83-install-real-package_ install-real-package)
 (define (install-real-package)
-  (_old-install-real-package_)
+  (_2_83-install-real-package_)
 
   (define (cmp type)
     (cond ((equal? type 'complex) -1)
@@ -853,9 +623,9 @@
   (put '<=> '(real) cmp)
   'done)
 
-(define _old-install-complex-package_ install-complex-package)
+(define _2_83-install-complex-package_ install-complex-package)
 (define (install-complex-package)
-  (_old-install-complex-package_)
+  (_2_83-install-complex-package_)
 
   (define (cmp type)
     (if (equal? type 'complex)
