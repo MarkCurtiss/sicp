@@ -560,7 +560,12 @@
 (define (install-real-package)
   (define (tag n) (attach-tag 'real n))
   (put 'make '(real)
-       (lambda (z) (tag z)))
+       (lambda (z)
+	 (if (pair? z)
+	     (tag (contents z))
+	     (tag z)))
+       )
+
   (put 'raise '(real)
        (lambda (z) (make-complex-from-real-imag z 0)))
   'done)
@@ -769,6 +774,11 @@
 ;; Value 1152: (scheme-number . 1)
 ;; 1 ]=> (drop (make-complex-from-real-imag 2 3))
 ;; Value 1153: (complex rectangular 2 . 3)
+;; 1 ]=> (drop (make-complex-from-mag-ang 8 10))
+;; Value 4214: (complex polar 8 . 10)
+;; (drop (make-complex-from-mag-ang 8 0))
+;; Value 4215: (scheme-number . 8)
+
 
 (define (apply-generic op . args)
   (define (all-types-equal? types)
@@ -794,9 +804,9 @@
     (let ((proc (get op type-tags)))
       (if (and proc (= (length type-tags) 1))
 	  (apply proc (map contents args)) ;;this is a predicate and needs no simplification
-      (cond ((and proc) (drop (apply proc (map contents args))))
-	    ((all-types-equal? type-tags) (error "No method for these types" (list op type-tags)))
-	    (else (apply apply-generic op (convert-all-types (find-max-type type-tags) args))))))))
+	  (cond ((and proc) (drop (apply proc (map contents args))))
+		((all-types-equal? type-tags) (error "No method for these types" (list op type-tags)))
+		(else (apply apply-generic op (convert-all-types (find-max-type type-tags) args))))))))
 
 
 ;; 1 ]=> (=zero? (make-rational 8 3))
@@ -807,3 +817,158 @@
 ;; Value 1482: (scheme-number . 22)
 ;; 1 ]=> (apply-generic 'add (make-rational 8 1) (make-rational 14 3))
 ;; Value 1483: (rational 38 . 3)
+
+; 2.86
+; ========================================================================
+;; This means we have to implement complex's operations like 'add' in
+;; terms of generic operators like (add) instead of + or equ? instead of =
+
+(define _2_85-install-scheme-number-package_ install-scheme-number-package)
+(define (install-scheme-number-package)
+  (_2_85-install-scheme-number-package_)
+
+  (put 'sine '(scheme-number) (lambda (x) (sin x)))
+  (put 'cosine '(scheme-number) (lambda (x) (cos x)))
+  (put 'arctan '(scheme-number scheme-number) (lambda (x y) (atan x y)))
+  (put 'x^2 '(scheme-number) (lambda (x) (square x)))
+  (put 'square-root '(scheme-number) (lambda (x) (sqrt x)))
+
+  'done)
+
+(define _2_85-install-rational-package_ install-rational-package)
+(define (install-rational-package)
+  (_2_85-install-rational-package_)
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+
+  (define (turn-into-number x)
+    (/ (* (numer x) 1.0) (denom x)))
+
+  (put 'sine '(rational) (lambda (x) (sin (turn-into-number x))))
+  (put 'cosine '(rational) (lambda (x) (cos (turn-into-number x))))
+  (put 'arctan '(rational rational)
+       (lambda (x y) (atan (turn-into-number x) (turn-into-number y))))
+  (put 'x^2 '(rational) (lambda (x) (square (turn-into-number x))))
+  (put 'square-root '(rational) (lambda (x) (sqrt (turn-into-number x))))
+
+  'done)
+
+(define _2_85-install-real-package_ install-real-package)
+(define (install-real-package)
+  (_2_85-install-real-package_)
+
+  (put 'sine '(real) (lambda (x) (sin x)))
+  (put 'cosine '(real) (lambda (x) (cos x)))
+  (put 'arctan '(real real) (lambda (x y) (atan x y)))
+  (put 'x^2 '(real) (lambda (x) (square x)))
+  (put 'square-root '(real) (lambda (x) (sqrt x)))
+
+  'done)
+
+(define _2_77-install-rectangular-package_ install-rectangular-package)
+(define (install-rectangular-package)
+  (_2_77-install-rectangular-package_)
+  (define (real-part z) (car z))
+  (define (imag-part z) (cdr z))
+  (define (magnitude z)
+    (square-root (add (x^2 (real-part z))
+		      (x^2 (imag-part z)))))
+  (define (angle z)
+    (arctan (imag-part z) (real-part z)))
+  (define (make-from-mag-ang r a)
+    (cons (mul r (cosine a)) (mul r (sine a))))
+  (put 'magnitude '(rectangular) magnitude)
+  (put 'angle '(rectangular) angle)
+
+  (put 'make-from-mag-ang 'rectangular
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
+
+(define _2_77-install-polar-package install-polar-package)
+(define (install-polar-package)
+  (_2_77-install-polar-package)
+  ;; internal procedures
+  (define (magnitude z) (car z))
+  (define (angle z) (cdr z))
+  (define (make-from-mag-ang r a) (cons r a))
+  (define (real-part z)
+    (mul (magnitude z) (cosine (angle z))))
+  (define (imag-part z)
+    (mul (magnitude z) (sine (angle z))))
+  (define (make-from-real-imag x y)
+    (cons (square-root (add (x^2 x) (x^2 y)))
+          (arctan y x)))
+  (define (tag x) (attach-tag 'polar x))
+  (put 'real-part '(polar) real-part)
+  (put 'imag-part '(polar) imag-part)
+  (put 'magnitude '(polar) magnitude)
+  (put 'angle '(polar) angle)
+  (put 'make-from-real-imag 'polar
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'polar
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  'done)
+
+(define _2_85-install-complex-package_ install-complex-package)
+(define (install-complex-package)
+  (_2_85-install-complex-package_)
+
+  (define (div-complex z1 z2)
+    (make-from-mag-ang (div (magnitude z1) (magnitude z2))
+                       (sub (angle z1) (angle z2))))
+
+  (define (make-from-real-imag x y)
+    ((get 'make-from-real-imag 'rectangular) x y))
+  (define (make-from-mag-ang r a)
+    ((get 'make-from-mag-ang 'polar) r a))
+
+  (define (add-complex z1 z2)
+    (make-from-real-imag (add (real-part z1) (real-part z2))
+                         (add (imag-part z1) (imag-part z2))))
+  (define (sub-complex z1 z2)
+    (make-from-real-imag (sub (real-part z1) (real-part z2))
+                         (sub (imag-part z1) (imag-part z2))))
+  (define (mul-complex z1 z2)
+    (make-from-mag-ang (mul (magnitude z1) (magnitude z2))
+                       (add (angle z1) (angle z2))))
+
+  (define (equ?-complex x y)
+    (and
+     (equ? (real-part x) (real-part y))
+     (equ? (imag-part x) (imag-part y))))
+
+  (define (tag z) (attach-tag 'complex z))
+  (put 'add '(complex complex)
+       (lambda (z1 z2) (tag (add-complex z1 z2))))
+  (put 'sub '(complex complex)
+       (lambda (z1 z2) (tag (sub-complex z1 z2))))
+  (put 'mul '(complex complex)
+       (lambda (z1 z2) (tag (mul-complex z1 z2))))
+  (put 'div '(complex complex)
+       (lambda (z1 z2) (tag (div-complex z1 z2))))
+
+  (put 'equ? '(complex complex) equ?-complex)
+
+  'done)
+
+(define (sine x) (apply-generic 'sine x))
+(define (cosine x) (apply-generic 'cosine x))
+(define (arctan x y) (apply-generic 'arctan x y))
+(define (x^2 x) (apply-generic 'x^2 x))
+(define (square-root x) (apply-generic 'square-root x))
+
+(install-scheme-number-package)
+(install-real-package)
+(install-rational-package)
+(install-rectangular-package)
+(install-polar-package)
+(install-complex-package)
+
+;; 1 ]=> (apply-generic 'add (make-complex-from-real-imag (make-rational 3 8) 1) (make-complex-from-real-imag 14 9))
+;; Value 851: (complex rectangular (rational 115 . 8) scheme-number . 10)
+;; 1 ]=> (apply-generic 'sub (make-complex-from-real-imag (make-rational 3 8) 1) (make-complex-from-real-imag 14 9))
+;; Value 955: (complex rectangular (rational -109 . 8) scheme-number . -8)
+;; 1 ]=> (mul (make-complex-from-real-imag (make-rational 3 8) 1) (make-complex-from-real-imag 14 9))
+;; Value 5877: (complex polar (scheme-number . 17.775070323348935) scheme-number . 1.7833631363579512)
+;; 1 ]=> (div (make-complex-from-real-imag (make-rational 3 8) 1) (make-complex-from-real-imag 14 9))
+;; Value 6020: (complex polar (scheme-number . .0641699289651586) scheme-number . .6406881766906976)
