@@ -1080,4 +1080,84 @@
 ;; 1 ]=> (mul (make-polynomial 'x (list '(100 10) '(80 8))) (make-polynomial 'x (list '(100 10) '(80 8))))
 ;; Value 1492: (polynomial x (200 (scheme-number . 100)) (180 (scheme-number . 160)) (160 (scheme-number . 64)))
 
+; 2.88
+; ========================================================================
+(define _2_87-install-polynomial-package_ install-polynomial-package)
+(define (install-polynomial-package)
+  (_2_87-install-polynomial-package_)
 
+  ;; copypasta
+  (define (make-poly variable term-list)
+    (cons variable term-list))
+  (define (variable? x) (symbol? x))
+  (define (same-variable? v1 v2) (and (variable? v1) (variable? v2) (eq? v1 v2)))
+  (define (adjoin-term term term-list)
+    (if (=zero? (coeff term))
+	term-list
+	(cons term term-list)))
+  (define (the-empty-termlist) '())
+  (define (first-term term-list) (car term-list))
+  (define (rest-terms term-list) (cdr term-list))
+  (define (term-list p) (cdr p))
+  (define (empty-termlist? term-list) (null? term-list))
+  (define (make-term order coeff) (list order coeff))
+  (define (order term) (car term))
+  (define (coeff term) (cadr term))
+  (define (variable p) (car p))
+  (define (tag p) (attach-tag 'polynomial p))
+
+  (define (add-poly p1 p2)
+    (define (add-terms L1 L2)
+      (cond ((empty-termlist? L1) L2)
+	    ((empty-termlist? L2) L1)
+	    (else
+	     (let ((t1 (first-term L1)) (t2 (first-term L2)))
+	       (cond ((> (order t1) (order t2))
+		      (adjoin-term
+		       t1 (add-terms (rest-terms L1) L2)))
+		     ((< (order t1) (order t2))
+		      (adjoin-term
+		       t2 (add-terms L1 (rest-terms L2))))
+		     (else
+		      (adjoin-term
+		       (make-term (order t1)
+				  (add (coeff t1) (coeff t2)))
+		       (add-terms (rest-terms L1)
+				  (rest-terms L2)))))))))
+
+    (if (same-variable? (variable p1) (variable p2))
+	(make-poly (variable p1)
+		   (add-terms (term-list p1)
+			      (term-list p2)))
+	(error "Polys not in same var -- ADD-POLY"
+	       (list p1 p2))))
+
+
+  ;; new code
+  (define (negate-poly p)
+    (define (negate-term term) (make-term (order term) (- (coeff term))))
+
+    (define (iter term-list new-poly)
+      (cond ((empty-termlist? term-list) new-poly)
+	    (else (iter (rest-terms term-list)
+			(adjoin-term (negate-term (first-term term-list)) new-poly)))))
+
+    (make-poly (variable p)
+	       (reverse (iter (term-list p) (the-empty-termlist))))
+    )
+
+;;1 ]=> (negate-poly (contents (make-polynomial 'x (list '(100 8) '(80 10)))))
+;;Value 1645: (x (100 -8) (80 -10))
+
+  (put 'sub '(polynomial polynomial)
+       (lambda (p1 p2)
+	 (tag (add-poly p1 (negate-poly p2)))))
+
+  'done)
+
+(install-polynomial-package)
+
+;; 1 ]=> (sub (make-polynomial 'x (list '(100 10) '(80 8))) (make-polynomial 'x (list '(100 2) '(80 7))))
+;; Value 1085: (polynomial x (100 (scheme-number . 8)) (80 (scheme-number . 1)))
+;; 1 ]=> (sub (make-polynomial 'x (list '(100 10) '(80 8))) (make-polynomial 'x (list '(100 10) '(80 8))))
+;; Value 1086: (polynomial x)
