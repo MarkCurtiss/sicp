@@ -767,10 +767,9 @@
 	  ((equ? (raise dropped-value) previous-value) (iter dropped-value (project dropped-value)))
 	  (else previous-value)))
 
-  (if (pair? x)
+  (if (and (pair? x) (get 'project (list (type-tag x))))
       (iter x (project x))
       x))
-
 
 ;; 1 ]=> (drop (make-complex-from-real-imag 1.5 0))
 ;; Value 1151: (real . 1.5)
@@ -780,8 +779,10 @@
 ;; Value 1153: (complex rectangular 2 . 3)
 ;; 1 ]=> (drop (make-complex-from-mag-ang 8 10))
 ;; Value 4214: (complex polar 8 . 10)
-;; (drop (make-complex-from-mag-ang 8 0))
+;; 1 ]=> (drop (make-complex-from-mag-ang 8 0))
 ;; Value 4215: (scheme-number . 8)
+;; 1 ]=> (drop (make-polynomial 'x (list '(100 10) '(80 8))))
+;; Value 2077: (polynomial x (100 10) (80 8))
 
 
 (define (apply-generic op . args)
