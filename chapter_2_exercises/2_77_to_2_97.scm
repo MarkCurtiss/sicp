@@ -561,10 +561,14 @@
   (define (tag n) (attach-tag 'real n))
   (put 'make '(real)
        (lambda (z)
+;;Ugh the implementation of complex numbers means we could try making
+;;reals out of any other type.I don't know a more elegant way to
+;;handle this.
 	 (if (pair? z)
-	     (tag (contents z))
-	     (tag z)))
-       )
+	     (if (equal? (type-tag z) 'rational)
+		 (tag (contents (project z)))
+		 (tag (contents z)))
+	     (tag z))))
 
   (put 'raise '(real)
        (lambda (z) (make-complex-from-real-imag z 0)))
