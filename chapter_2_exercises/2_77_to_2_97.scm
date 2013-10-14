@@ -562,7 +562,7 @@
   (put 'make '(real)
        (lambda (z)
 ;;Ugh the implementation of complex numbers means we could try making
-;;reals out of any other type.I don't know a more elegant way to
+;;reals out of any other type. I don't know a more elegant way to
 ;;handle this.
 	 (if (pair? z)
 	     (if (equal? (type-tag z) 'rational)
@@ -1106,7 +1106,6 @@
   (define (variable p) (car p))
   (define (tag p) (attach-tag 'polynomial p))
 
-  (define (add-poly p1 p2)
     (define (add-terms L1 L2)
       (cond ((empty-termlist? L1) L2)
 	    ((empty-termlist? L2) L1)
@@ -1125,13 +1124,13 @@
 		       (add-terms (rest-terms L1)
 				  (rest-terms L2)))))))))
 
+  (define (add-poly p1 p2)
     (if (same-variable? (variable p1) (variable p2))
 	(make-poly (variable p1)
 		   (add-terms (term-list p1)
 			      (term-list p2)))
 	(error "Polys not in same var -- ADD-POLY"
 	       (list p1 p2))))
-
 
   ;; new code
   (define (negate-poly p)
@@ -1161,3 +1160,130 @@
 ;; Value 1085: (polynomial x (100 (scheme-number . 8)) (80 (scheme-number . 1)))
 ;; 1 ]=> (sub (make-polynomial 'x (list '(100 10) '(80 8))) (make-polynomial 'x (list '(100 10) '(80 8))))
 ;; Value 1086: (polynomial x)
+
+; 2.89
+; ========================================================================
+(define (install-polynomial-package)
+  ;; internal procedures
+  ;; representation of poly
+  (define (make-poly variable term-list)
+    (cons variable term-list))
+  (define (variable p) (car p))
+  (define (term-list p) (cdr p))
+  (define (variable? x) (symbol? x))
+  (define (same-variable? v1 v2) (and (variable? v1) (variable? v2) (eq? v1 v2)))
+  ;; representation of terms and term lists
+  (define (adjoin-term term term-list) (cons term term-list))
+  (define (the-empty-termlist) '())
+  (define (first-term term-list) (car term-list))
+  (define (rest-terms term-list) (cdr term-list))
+  (define (empty-termlist? term-list) (null? term-list))
+  (define (make-term order coeff)
+    (define (iter list)
+      (if (= (length list) order)
+	  (cons coeff list)
+	  (iter (cons 0 list))))
+
+    (iter '()))
+  ;; 1 ]=> (make-term 1 24)
+  ;; Value 1906: (24 0)
+
+  (define (order term-list) (- (length term-list) 1))
+  (define (pad-term-list term-list size)
+    (if (= (length term-list) size)
+	term-list
+	(pad-term-list (adjoin-term 0 term-list) size))
+    )
+
+  (define (add-terms L1 L2)
+    (cond ((empty-termlist? L1) L2)
+	  ((empty-termlist? L2) L1)
+	  ((< (length L1) (length L2)) (add-terms (pad-term-list L1 (length L2)) L2))
+	  ((< (length L2) (length L1)) (add-terms L1 (pad-term-list L2 (length L1))))
+	  (else
+	   (let ((t1 (first-term L1)) (t2 (first-term L2)))
+	     (adjoin-term
+	      (add t1 t2)
+	      (add-terms (rest-terms L1)
+			 (rest-terms L2)))))))
+
+  (define (add-poly p1 p2)
+    (if (same-variable? (variable p1) (variable p2))
+	(make-poly (variable p1)
+		   (add-terms (term-list p1)
+			      (term-list p2)))
+	(error "Polys not in same var -- ADD-POLY"
+	       (list p1 p2))))
+
+  (define (mul-poly p1 p2)
+    (define (mul-terms L1 L2)
+      (if (empty-termlist? L1)
+	  (the-empty-termlist)
+	  (add-terms (mul-term-by-all-terms (first-term L1) L1 L2)
+		     (mul-terms (rest-terms L1) L2))))
+    (define (mul-term-by-all-terms t1 L1 L2)
+      (if (empty-termlist? L2)
+	  (the-empty-termlist)
+	  (let ((t2 (first-term L2)))
+	    (add-terms
+	     (make-term (+ (order L1) (order L2))
+			(* t1 t2))
+	     (mul-term-by-all-terms t1 L1 (rest-terms L2))))))
+
+    (if (same-variable? (variable p1) (variable p2))
+	(make-poly (variable p1)
+		   (mul-terms (term-list p1)
+			      (term-list p2)))
+	(error "Polys not in same var -- MUL-POLY"
+	       (list p1 p2))))
+
+  (define (=zero?-poly x)
+    (every (lambda (term) (= 0)) (term-list x)))
+
+  (define (negate-poly p)
+    (define (negate-term term) (- term))
+
+    (define (iter term-list new-poly)
+      (cond ((empty-termlist? term-list) new-poly)
+	    (else (iter (rest-terms term-list)
+			(adjoin-term (negate-term (first-term term-list)) new-poly)))))
+
+    (make-poly (variable p)
+	       (reverse (iter (term-list p) (the-empty-termlist))))
+    )
+
+  ;; interface to rest of the system
+  (define (tag p) (attach-tag 'polynomial p))
+  (put 'add '(polynomial polynomial)
+       (lambda (p1 p2) (tag (add-poly p1 p2))))
+  (put 'mul '(polynomial polynomial)
+       (lambda (p1 p2) (tag (mul-poly p1 p2))))
+  (put 'make 'polynomial
+       (lambda (var terms) (tag (make-poly var terms))))
+  (put '=zero? '(polynomial) =zero?-poly)
+  (put 'sub '(polynomial polynomial)
+       (lambda (p1 p2)
+	 (tag (add-poly p1 (negate-poly p2)))))
+  'done)
+
+(define (make-polynomial var terms)
+  ((get 'make 'polynomial) var terms))
+
+(install-polynomial-package)
+
+;; 1 ]=> (add (make-polynomial 'x '(16 0 5 1)) (make-polynomial 'x '(16 0 5 1)))
+;; Value 1324: (polynomial x (scheme-number . 32) (scheme-number . 0) (scheme-number . 10) (scheme-number . 2))
+;; 1 ]=> (add (make-polynomial 'x '(16 0 5 1)) (make-polynomial 'x '(8)))
+;; Value 1326: (polynomial x (scheme-number . 16) (scheme-number . 0) (scheme-number . 5) (scheme-number . 9))
+
+;; 1 ]=> (sub (make-polynomial 'x '(16 0 5 1)) (make-polynomial 'x '(8)))
+;; Value 1407: (polynomial x (scheme-number . 16) (scheme-number . 0) (scheme-number . 5) (scheme-number . -7))
+;; 1 ]=> (sub (make-polynomial 'x '(16 0 5 1)) (make-polynomial 'x '(16 0 5 1)))
+;; Value 1408: (polynomial x (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0))
+
+;; 1 ]=> (mul (make-polynomial 'x '(8 0)) (make-polynomial 'x '(3 1)))
+;; Value 2785: (polynomial x (scheme-number . 24) (scheme-number . 8) (scheme-number . 0))
+;; 1 ]=> (mul (make-polynomial 'x '(2 0 0)) (make-polynomial 'x '(3)))
+;; Value 2786: (polynomial x (scheme-number . 6) (scheme-number . 0) (scheme-number . 0))
+;; 1 ]=> (mul (make-polynomial 'x '(2 0 3)) (make-polynomial 'x '(1 8 0)))
+;; Value 2787: (polynomial x (scheme-number . 2) (scheme-number . 16) (scheme-number . 3) (scheme-number . 24) (scheme-number . 0))
