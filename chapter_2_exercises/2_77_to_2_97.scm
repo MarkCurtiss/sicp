@@ -1400,16 +1400,16 @@
   (define (mul-terms L1 L2)
     (if (empty-termlist? L1)
 	(the-empty-termlist)
-	(add-terms (mul-term-by-all-terms (first-term L1) L1 L2)
+	(add-terms (mul-term-by-all-terms (first-term L1) (order L1) L2)
 		   (mul-terms (rest-terms L1) L2))))
-  (define (mul-term-by-all-terms t1 L1 L2)
+  (define (mul-term-by-all-terms t1 L1-order L2)
     (if (empty-termlist? L2)
 	(the-empty-termlist)
 	(let ((t2 (first-term L2)))
 	  (add-terms
-	   (make-term (+ (order L1) (order L2))
+	   (make-term (+ L1-order (order L2))
 		      (* t1 t2))
-	   (mul-term-by-all-terms t1 L1 (rest-terms L2))))))
+	   (mul-term-by-all-terms t1 L1-order (rest-terms L2))))))
 
   (define (negate-terms term-list)
     (define (negate-term term) (- term))
@@ -1429,7 +1429,6 @@
        (lambda (term-list) (tag (negate-terms term-list))))
   (put 'make 'dense-term-list
        (lambda (terms) (tag terms)))
-
 
   'done)
 
@@ -1509,3 +1508,243 @@
 ;; Value 5500: (polynomial x dense-term-list (scheme-number . 12) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 18) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 16) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 24))
 ;; 1 ]=> (sub (make-polynomial 'x (make-dense-term-list '(2 0 0 0 0 0 0 0 3))) (make-polynomial 'x (make-dense-term-list '(6 0 0 0 0 0 0 0 0 0 0 0 0 0 8))))
 ;; Value 6385: (polynomial x dense-term-list (scheme-number . -6) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 2) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . 0) (scheme-number . -5))
+
+; 2.91
+; ========================================================================
+(define _2_90-install-polynomial-package_ install-polynomial-package)
+(define _2_90-install-sparse-term-list-package_ install-sparse-term-list-package)
+(define _2_90-install-dense-term-list-package_ install-dense-term-list-package)
+
+(define (install-sparse-term-list-package)
+  (_2_90-install-sparse-term-list-package_)
+
+  (define (adjoin-term term term-list)
+    (if (=zero? (coeff term))
+	term-list
+	(cons term term-list)))
+  (define (the-empty-termlist) '())
+  (define (first-term term-list) (car term-list))
+  (define (rest-terms term-list) (cdr term-list))
+  (define (empty-termlist? term-list) (null? term-list))
+  (define (make-term order coeff) (list order coeff))
+  (define (order term) (car term))
+  (define (coeff term) (cadr term))
+
+  (define (add-terms L1 L2)
+    (cond ((empty-termlist? L1) L2)
+	  ((empty-termlist? L2) L1)
+	  (else
+	   (let ((t1 (first-term L1)) (t2 (first-term L2)))
+	     (cond ((> (order t1) (order t2))
+		    (adjoin-term
+		     t1 (add-terms (rest-terms L1) L2)))
+		   ((< (order t1) (order t2))
+		    (adjoin-term
+		     t2 (add-terms L1 (rest-terms L2))))
+		   (else
+		    (adjoin-term
+		     (make-term (order t1)
+				(add (coeff t1) (coeff t2)))
+		     (add-terms (rest-terms L1)
+				(rest-terms L2)))))))))
+
+  (define (mul-term-by-all-terms t1 L)
+    (if (empty-termlist? L)
+	(the-empty-termlist)
+	(let ((t2 (first-term L)))
+	  (adjoin-term
+	   (make-term (+ (order t1) (order t2))
+		      (mul (coeff t1) (coeff t2)))
+	   (mul-term-by-all-terms t1 (rest-terms L))))))
+
+  (define (negate-terms term-list)
+    ;;I keep running into this issue where functions such as this here
+    ;;(negate-term) are passed a (scheme-number . 3) instead of a basic 3
+    ;;when they weren't expecting it.  This is because so many of our
+    ;;operations funnel through (apply-generic) and get transformed by the
+    ;;(drop) and (raise) procedures.
+    ;;This has the unfortunate SIDE EFFECT that anytime you try and
+    ;;use a built-in procedure like (-) to negate a variable, you run the
+    ;;risk of later getting passed a (scheme-number . 3) which (-) has
+    ;;no idea what to do with and thus throws an exception.
+
+    ;;This leaves me with two unsavory options:
+    ;;1. Go back and implement (-) for every custom type we have defined
+    ;;	 so far.
+    ;;2. Have (negate-term) inspect and, if necessary, transform the type
+    ;;   of whatever coefficient it is dealing with.
+
+    ;;I went with the latter but as might be obvious by this multi-paragraph
+    ;;rant, I am really unhappy about it.
+    (define (negate-term term)
+      (if (pair? (coeff term))
+	  (make-term (order term) (- (contents (coeff term))))
+	  (make-term (order term) (- (coeff term)))))
+
+    (define (iter input output)
+      (cond ((empty-termlist? input) output)
+	    (else (iter (rest-terms input)
+			(adjoin-term (negate-term (first-term input)) output)))))
+
+    (reverse (iter term-list (the-empty-termlist))))
+
+  (define (div-terms L1 L2)
+    (if (empty-termlist? L1)
+	(list (the-empty-termlist) (the-empty-termlist))
+	(let ((t1 (first-term L1))
+	      (t2 (first-term L2)))
+	  (if (> (order t2) (order t1))
+	      (list (the-empty-termlist) L1)
+	      (let ((new-c (div (coeff t1) (coeff t2)))
+		    (new-o (- (order t1) (order t2))))
+		(let ((rest-of-result
+		       (div-terms
+			(add-terms L1
+				   (negate-terms (mul-term-by-all-terms (make-term new-o new-c) L2)))
+			L2)))
+		  (list (adjoin-term (make-term new-o new-c) (car rest-of-result))
+			(cadr rest-of-result)))
+		)))))
+
+  (define (tag x) (attach-tag 'sparse-term-list x))
+  (put 'div '(sparse-term-list sparse-term-list)
+       (lambda (l1 l2) (tag (div-terms l1 l2))))
+
+  'done)
+
+(define (install-dense-term-list-package)
+  (_2_90-install-dense-term-list-package_)
+
+  ;;copypasta
+  (define (the-empty-termlist) '())
+  (define (first-term term-list) (car term-list))
+  (define (rest-terms term-list) (cdr term-list))
+  (define (empty-termlist? term-list) (null? term-list))
+  (define (order term-list) (- (length term-list) 1))
+  (define (make-term order coeff)
+    (define (iter list)
+      (if (= (length list) order)
+	  (cons coeff list)
+	  (iter (cons 0 list))))
+
+    (iter '()))
+
+  (define (mul-term-by-all-terms t1 L1-order L2)
+    (if (not (number? t1))
+	(error "Argument t1 not of numeric type -- MUL-TERM-BY-ALL-TERMS" (list t1 L1-order L2)))
+
+    (if (empty-termlist? L2)
+	(the-empty-termlist)
+	(let ((t2 (first-term L2)))
+	  (add-terms
+	   (make-term (+ L1-order (order L2))
+		      (* t1 t2))
+	   (mul-term-by-all-terms t1 L1-order (rest-terms L2))))))
+
+  (define (pad-term-list term-list size)
+    (if (= (length term-list) size)
+	term-list
+	(pad-term-list (adjoin-term 0 term-list) size))
+    )
+
+  ;; Man this is really a hack to get around the fact that I sometimes represent
+  ;; a term as a single coefficient and sometimes I represent it as a full-blown
+  ;; term-list.  So sometimes I get back term-lists like (0 0 1 0 -1) that
+  ;; break other term-list operations.
+  ;; This suggests to me that I implemented the last exercise incorrectly.
+  ;; Rather than go back and fix it and risk further breakage and debugging hours,
+  ;; I'm just implementing this function that prunes the leading 0s.
+  (define (prune-term-list term-list)
+    (define (iter tlist)
+      (cond ((empty-termlist? term-list) tlist)
+	    ((=zero? (first-term tlist)) (iter (rest-terms tlist)))
+	    (else tlist)))
+
+    (iter term-list))
+
+  ;; 1 ]=> (prune-term-list (map (lambda (x) (make-scheme-number x)) '(0 0 1 0 0 -1)))
+  ;; Value 12817: ((scheme-number . 1) (scheme-number . 0) (scheme-number . 0) (scheme-number . -1))
+  ;; 1 ]=> (prune-term-list '(0 0 1 0 0 -1))
+  ;; Value 12818: (1 0 0 -1)
+
+  (define (add-terms L1 L2)
+    (cond ((empty-termlist? L1) L2)
+	  ((empty-termlist? L2) L1)
+	  ((< (length L1) (length L2)) (add-terms (pad-term-list L1 (length L2)) L2))
+	  ((< (length L2) (length L1)) (add-terms L1 (pad-term-list L2 (length L1))))
+	  (else
+	   (let ((t1 (first-term L1)) (t2 (first-term L2)))
+	     (adjoin-term
+	      (add t1 t2)
+	      (add-terms (rest-terms L1)
+			 (rest-terms L2)))))))
+
+  (define (negate-terms term-list)
+    (define (negate-term term)
+      (if (pair? term)
+	  (- (contents term))
+	  (- term)))
+    (define (iter input output)
+      (cond ((empty-termlist? input) output)
+	    (else (iter (rest-terms input)
+			(adjoin-term (negate-term (first-term input)) output)))))
+
+    (reverse (iter term-list (the-empty-termlist))))
+
+  (define (div-terms L1 L2)
+    (if (empty-termlist? L1)
+	(list (the-empty-termlist) (the-empty-termlist))
+	(let ((t1 (first-term L1))
+	      (t2 (first-term L2)))
+	  (if (> (order L2) (order L1))
+	      (list (the-empty-termlist) L1)
+	      (let ((new-c (div (coeff t1) (coeff t2)))
+		    (new-o (- (order L1) (order L2))))
+		    (let ((rest-of-result
+			   (div-terms
+			    (prune-term-list
+			     (add-terms L1
+					(negate-terms (mul-term-by-all-terms (contents new-c) new-o L2))))
+			    L2)))
+		      (list (add-terms (make-term new-o new-c) (car rest-of-result))
+			    (cadr rest-of-result)))
+		      )))))
+
+  (define (tag x) (attach-tag 'dense-term-list x))
+  (put 'div '(dense-term-list dense-term-list)
+       (lambda (l1 l2) (tag (div-terms l1 l2))))
+
+  'done)
+
+(define (install-polynomial-package)
+  (_2_90-install-polynomial-package_)
+
+  ;;copypasta
+  (define (make-poly variable term-list) (cons variable term-list))
+  (define (variable p) (car p))
+  (define (same-variable? v1 v2) (and (variable? v1) (variable? v2) (eq? v1 v2)))
+  (define (variable? x) (symbol? x))
+  (define (term-list p) (cdr p))
+
+  ;;new code
+  (define (div-terms L1 L2) (apply-generic 'div L1 L2))
+  (define (div-poly p1 p2)
+    (if (same-variable? (variable p1) (variable p2))
+	(make-poly (variable p1)
+		   (div-terms (term-list p1)
+			      (term-list p2)))
+	(error "Polys not in same var -- DIV-POLY"
+	       (list p1 p2))))
+
+  (put 'div '(polynomial polynomial)
+       (lambda (p1 p2) (tag (div-poly p1 p2))))
+
+  'done)
+
+(install-polynomial-package)
+(install-sparse-term-list-package)
+;; 1 ]=> (div (make-polynomial 'x (make-sparse-term-list (list '(5 1) '(0 -1)))) (make-polynomial 'x (make-sparse-term-list (list '(2 1) '(0 -1)))))
+;; Value 16895: (polynomial x sparse-term-list ((3 (scheme-number . 1)) (1 (scheme-number . 1))) ((1 1) (0 -1)))
+(install-dense-term-list-package)
+;; 1 ]=> (div (make-polynomial 'x (make-dense-term-list '(1 0 0 0 0 -1))) (make-polynomial 'x (make-dense-term-list '(1 0 -1))))
+;; Value 14196: (polynomial x dense-term-list ((scheme-number . 1) (scheme-number . 0) (scheme-number . 1) (scheme-number . 0)) ((scheme-number . 1) (scheme-number . -1)))
