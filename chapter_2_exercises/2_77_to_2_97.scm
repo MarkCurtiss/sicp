@@ -767,7 +767,7 @@
 	  ((equ? (raise dropped-value) previous-value) (iter dropped-value (project dropped-value)))
 	  (else previous-value)))
 
-  (if (and (pair? x) (get 'project (list (type-tag x))))
+  (if (and (pair? x) (get 'project (list (type-tag x))) (get 'raise (list (type-tag x))))
       (iter x (project x))
       x))
 
@@ -1712,3 +1712,8 @@
 ;; Value 12497: (polynomial x (sparse-term-list ((scheme-number . 3) (scheme-number . 1)) ((scheme-number . 1) (scheme-number . 1))) (sparse-term-list ((scheme-number . 1) 1) (0 -1)))
 ;; 1 ]=> (div (make-polynomial 'x (make-dense-term-list '(1 0 0 0 0 -1))) (make-polynomial 'x (make-dense-term-list '(1 0 -1))))
 ;; Value 18538: (polynomial x (dense-term-list 1 0 1 0) (dense-term-list 1 -1))
+
+; 2.92
+; ========================================================================
+(define _2_91-install-polynomial-package_ install-polynomial-package)
+
