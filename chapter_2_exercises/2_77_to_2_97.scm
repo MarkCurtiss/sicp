@@ -1717,3 +1717,158 @@
 ; ========================================================================
 (define _2_91-install-polynomial-package_ install-polynomial-package)
 
+; 2.93
+; ========================================================================
+(define _2_86-install-rational-package_ install-rational-package)
+(define (install-rational-package)
+  (_2_86-install-rational-package_)
+  (define (numer x) (car x))
+  (define (denom x) (cdr x))
+
+  (define (make-rat n d)
+    (cons n d))
+
+  (define (add-rat x y)
+    (make-rat (add (mul (numer x) (denom y))
+		   (mul (numer y) (denom x)))
+              (mul (denom x) (denom y))))
+
+  (define (tag x) (attach-tag 'rational x))
+  (put 'add '(rational rational)
+       (lambda (x y) (tag (add-rat x y))))
+  (put 'make 'rational
+       (lambda (n d) (tag (make-rat n d))))
+
+  ;;For all I've heard about this book and Scheme being so elegant, I
+  ;;find myself having to implement functions like this because our
+  ;;previous changes to (apply-generic) in 2.85 cause everything to get
+  ;;routed through (drop) and (project) and some types can't really
+  ;;be projected.  How am I supposed to handle this?  Have I done
+  ;;something wrong??  The book just sits there, silently.  Smugly.
+  (define (is-rational-function? r)
+    (or (equal? (type-tag (numer r)) 'polynomial)
+	(equal? (type-tag (denom r)) 'polynomial)))
+
+  (put 'raise '(rational)
+       (lambda (x)
+	 (if (is-rational-function? x)
+	     (error "What does it even mean to raise a rational function? -- RAISE" x)
+	     (make-real (div
+			 (mul (numer x) 1.0)
+			 (denom x))))))
+
+  (put 'project '(rational)
+       (lambda (x)
+	 (if (is-rational-function? x)
+	     (error "What does it even mean to project a rational function? -- PROJECT" x)
+	     (make-scheme-number (round (div (numer x) (denom x)))))))
+
+  'done)
+
+(install-rational-package)
+
+; 2.94
+; ========================================================================
+(define _2_92-install-polynomial-package_ install-polynomial-package)
+
+(define (greatest-common-divisor a b)
+  (if (and (equal? (type-tag a) 'polynomial)
+	   (equal? (type-tag b) 'polynomial))
+      (apply-generic 'greatest-common-divisor a b)
+      (gcd a b)))
+
+
+(define (install-polynomial-package)
+  (_2_92-install-polynomial-package_)
+
+  (define (term-list p) (cdr p))
+  (define (the-empty-termlist type-tag-lol)
+    (apply-generic 'the-empty-termlist (cons type-tag-lol '())))
+  (define (empty-termlist? term-list)
+    (apply-generic 'empty-termlist? term-list))
+  (define (first-term term-list)
+    (apply-generic 'first-term term-list))
+  (define (rest-terms term-list)
+    (apply-generic 'rest-terms term-list))
+  (define (make-term order coeff)
+    (apply-generic 'make-term order coeff))
+  (define (coeff term)
+    (apply-generic 'coeff term))
+  (define (order term)
+    (apply-generic 'order term))
+  (define (<=> t1 t2)
+    (apply-generic '<=> t1 t2))
+  (define (adjoin-term term term-list)
+    (apply-generic 'adjoin-term term term-list))
+  (define (add-terms L1 L2)
+    (cond ((empty-termlist? L1) L2)
+	  ((empty-termlist? L2) L1)
+	  (else
+	   (let ((t1 (first-term L1)) (t2 (first-term L2)))
+	     (cond ((= (<=> (order t1) (order t2)) 1)
+		    (adjoin-term
+		     t1 (add-terms (rest-terms L1) L2)))
+		   ((= (<=> (order t1) (order t2)) -1)
+		    (adjoin-term
+		     t2 (add-terms L1 (rest-terms L2))))
+		   (else
+		    (adjoin-term
+		     (make-term (order t1)
+				(add (coeff t1) (coeff t2)))
+		     (add-terms (rest-terms L1)
+				(rest-terms L2)))))))))
+  (define (div-terms L1 L2)
+    (if (empty-termlist? L1)
+	(list (the-empty-termlist (type-tag L1)) (the-empty-termlist (type-tag L1)))
+	(let ((t1 (first-term L1))
+	      (t2 (first-term L2)))
+	  (if (= (<=> (order t2) (order t1)) 1)
+	      (list (the-empty-termlist (type-tag L1)) L1)
+	      (let ((new-c (div (coeff t1) (coeff t2)))
+		    (new-o (sub (order t1) (order t2))))
+		(let ((rest-of-result
+		       (div-terms
+			(add-terms L1
+				   (negate-term-list (mul-term-by-all-terms (make-term new-o new-c) L2)))
+			L2)))
+		  (list (adjoin-term (make-term new-o new-c) (car rest-of-result))
+			(cadr rest-of-result)))
+		)))))
+  (define (mul-terms L1 L2)
+    (if (empty-termlist? L1)
+	(the-empty-termlist (type-tag L1))
+	(add-terms (mul-term-by-all-terms (first-term L1) L2)
+		   (mul-terms (rest-terms L1) L2))))
+  (define (mul-term-by-all-terms t1 L)
+    (if (empty-termlist? L)
+	(the-empty-termlist (type-tag t1))
+	(let ((t2 (first-term L)))
+	  (adjoin-term
+	   (make-term (add (order t1) (order t2))
+		      (mul (coeff t1) (coeff t2)))
+	   (mul-term-by-all-terms t1 (rest-terms L))))))
+  (define (negate-term-list term-list)
+    (apply-generic 'negate-term-list term-list))
+  (define (reverse term-list)
+    (apply-generic 'reverse term-list))
+
+  ;;new code
+  (define (remainder-terms a b)
+    (cadr (div-terms a b)))
+
+  (define (gcd-terms a b)
+    (if (empty-termlist? b)
+	a
+	(gcd-terms b (remainder-terms a b))))
+
+  (define (greatest-common-divisor p1 p2)
+    (gcd-terms (term-list p1) (term-list p2)))
+
+  (define (tag p) (attach-tag 'polynomial p))
+  (put 'greatest-common-divisor '(polynomial polynomial)
+       (lambda (p1 p2) (tag (greatest-common-divisor p1 p2))))
+
+  'done)
+
+(install-polynomial-package)
+

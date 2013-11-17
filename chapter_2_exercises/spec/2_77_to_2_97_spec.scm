@@ -34,9 +34,26 @@
   (it "lets you create polynomials in multiple variables" (lambda ()
     (assert (equal?
       ;;xy^2 - xy
-      (make-polynomial 'x (make-polynomial 'y (make-dense-term-list '(1 0 -1))))
-      (list 'polynomial 'x 'polynomial 'y 'dense-term-list 1 0 -1)))))
+      (make-polynomial 'x (make-dense-term-list (list (make-polynomial 'y (make-dense-term-list '(1 0 -1))))))
+      (list 'polynomial 'x 'dense-term-list '(polynomial y dense-term-list 1 0 -1))))))
 
+  (it "shouldn't reduce rationals of polynomials to lowest terms"
+      (lambda ()
+	(define p1 (make-polynomial 'x (make-sparse-term-list (list '(2 1) '(0 1)))))
+	(define p2 (make-polynomial 'x (make-sparse-term-list (list '(3 1) '(0 1)))))
+	(define rf (make-rational p2 p1))
 
+	(assert (equal?
+		 (add rf rf)
+		 (list 'rational '(polynomial x sparse-term-list ((2 1)(0 1))) '(polynomial x sparse-term-list ((3 1)(0 1))))))))
+
+  (it "can compute the greatest common divisor for two polynomials"
+      (lambda ()
+	(define p1 (make-polynomial 'x (make-sparse-term-list (list '(4 1) '(3 -1) '(2 -2) '(1 2)))))
+	(define p2 (make-polynomial 'x (make-sparse-term-list (list '(3 1) '(1 -1)))))
+
+	(assert (equal?
+		 (greatest-common-divisor p1 p2)
+		 (list 'polynomial 'sparse-term-list '(2 (scheme-number . -1)) '(1 (scheme-number . 1)))))))
 
 )
