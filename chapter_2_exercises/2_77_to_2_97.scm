@@ -1872,3 +1872,16 @@
 
 (install-polynomial-package)
 
+; 2.95
+; ========================================================================
+(define p1 (make-polynomial 'x (make-dense-term-list '(1 -2 1))))
+(define p2 (make-polynomial 'x (make-dense-term-list '(11 0 7))))
+(define p3 (make-polynomial 'x (make-dense-term-list '(13 5))))
+(define q1 (mul p1 p2))
+(define q2 (mul p1 p3))
+
+;; 1 ]=> (greatest-common-divisor q1 q2)
+;; Value 284: (polynomial dense-term-list 1458/169 -2916/169 1458/169)
+
+; 2.96
+; ========================================================================

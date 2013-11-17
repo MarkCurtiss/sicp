@@ -55,5 +55,4 @@
 	(assert (equal?
 		 (greatest-common-divisor p1 p2)
 		 (list 'polynomial 'sparse-term-list '(2 (scheme-number . -1)) '(1 (scheme-number . 1)))))))
-
 )
