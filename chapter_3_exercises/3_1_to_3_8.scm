@@ -117,18 +117,21 @@
 
 ; 3.6
 ; ========================================================================
-(define (rand method)
-  (define (rand-update value)
-    (random value))
+(define random-init 0)
+(define (rand-update value)
+  (+ 1 value))
 
-  (define random-init 18)
+(define rand
   (let ((x random-init))
-    (cond ((eq? method 'generate)
-	   (set! x (rand-update x))
-	   x)
-	  ((eq? method 'reset)
-	   (lambda (new-seq)
-	     (set! x new-seq)
-	     x)))))
+    (define (dispatch method)
+      (cond ((eq? method 'generate)
+	       (set! x (rand-update x))
+	       x)
+	    ((eq? method 'reset)
+	     (lambda (new-seq)
+	       (set! x new-seq)
+	       x))))
+  dispatch))
 
-
+; 3.7
+; ========================================================================

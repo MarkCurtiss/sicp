@@ -120,14 +120,27 @@
   (it "lets you generate random numbers"
     (lambda ()
       (assert (equal?
-	       (< (rand 'generate) 18)
-	       true))
+	       (rand 'generate)
+	       1))
+
+      (rand 'generate)
+      (rand 'generate)
+      
+      (assert (equal?
+	       (rand 'generate)
+	       4))
       ))
 
   (it "lets you reset the sequence"
     (lambda ()
+      (rand 'generate)
+      (rand 'generate)
+      (rand 'generate)
+
+      ((rand 'reset) 1)
+
       (assert (equal?
-	      ((rand 'reset) 140)
-	      140))
+	       (rand 'generate)
+	       2))
     ))
   )
