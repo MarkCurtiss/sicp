@@ -114,3 +114,21 @@
   (*
    (monte-carlo num-trials experiment)
    (area-rect x1 y1 x2 y2)))
+
+; 3.6
+; ========================================================================
+(define (rand method)
+  (define (rand-update value)
+    (random value))
+
+  (define random-init 18)
+  (let ((x random-init))
+    (cond ((eq? method 'generate)
+	   (set! x (rand-update x))
+	   x)
+	  ((eq? method 'reset)
+	   (lambda (new-seq)
+	     (set! x new-seq)
+	     x)))))
+
+

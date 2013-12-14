@@ -115,3 +115,19 @@
 	       (floor (estimate-integral predicate -1.0 1.0 -1.0 1.0 10000))
 	       3.0))))
   )
+
+(describe "rand"
+  (it "lets you generate random numbers"
+    (lambda ()
+      (assert (equal?
+	       (< (rand 'generate) 18)
+	       true))
+      ))
+
+  (it "lets you reset the sequence"
+    (lambda ()
+      (assert (equal?
+	      ((rand 'reset) 140)
+	      140))
+    ))
+  )
