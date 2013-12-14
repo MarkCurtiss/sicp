@@ -77,3 +77,40 @@
 	  (lambda (x) "Incorrect password")))
 
     dispatch))
+
+; 3.5
+; ========================================================================
+(define (random-in-range low high)
+  (let ((range (- high low)))
+    (+ low (random range))))
+
+(define (monte-carlo trials experiment)
+  (define (iter trials-remaining trials-passed)
+    (cond ((= trials-remaining 0)
+           (/ trials-passed trials))
+          ((experiment)
+           (iter (- trials-remaining 1) (+ trials-passed 1)))
+          (else
+           (iter (- trials-remaining 1) trials-passed))))
+  (iter trials 0))
+
+(define (area-rect x1 y1 x2 y2)
+  (define (length-side x1 x2 y1 y2)
+    (sqrt (+
+	   (square (abs (- x2 x1)))
+	   (square (abs (- y2 y1))))))
+
+  (*
+   (length-side x1 x1 y1 y2)
+   (length-side x1 x2 y1 y1)))
+
+(define (estimate-integral predicate x1 x2 y1 y2 num-trials)
+  (define (experiment)
+    (let ((x (random-in-range x1 x2))
+	  (y (random-in-range y1 y2)))
+
+      (predicate x y)))
+
+  (*
+   (monte-carlo num-trials experiment)
+   (area-rect x1 y1 x2 y2)))

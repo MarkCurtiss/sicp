@@ -77,3 +77,41 @@
 	       "Whee-oo whee-oo!  The cops have been called"))
       ))
   )
+
+(describe "Monte Carlo integration"
+  (it "generates random numbers in a range"
+    (lambda ()
+      (define random-number (random-in-range 3 18))
+      (assert (equal? true
+		      (and (>= random-number 3) (< random-number 18))))))
+
+  (it "computes the area of a rectangle"
+    (lambda ()
+      (assert (equal?
+	       (area-rect 2 4 8 12)
+	       48))))
+
+  (it "estimates the integral of a circle of radius 3 centered at (5,7)"
+    (lambda ()
+
+      (define (predicate x y)
+	(<=
+	 (+ (square (- x 5))
+	    (square (- y 7)))
+	 (square 3)))
+
+      (assert (equal?
+	       (floor (estimate-integral predicate 2.0 8.0 4.0 10.0 10000))
+	       28.0))
+      ))
+
+  (it "estimates the integral of a unit circle"
+    (lambda ()
+
+      (define (predicate x y)
+	(<= (+ (square x) (square y)) 1))
+
+      (assert (equal?
+	       (floor (estimate-integral predicate -1.0 1.0 -1.0 1.0 10000))
+	       3.0))))
+  )
