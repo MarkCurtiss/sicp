@@ -54,9 +54,9 @@
 
       (pp ((acc 's~^Fu*t+GJ6Lmx6 'deposit) 50))
 
-      (assert (equal?
-	       ((acc 's~^Fu*t+GJ6Lmx6 'deposit) 50)
-	       "Incorrect password"))
+      (assert-error
+       (lambda () (acc 's~^Fu*t+GJ6Lmx6 'deposit) 50)
+	       "Incorrect password")
       ))
 
   (it "calls the cops if the password is wrong seven times"
@@ -72,9 +72,9 @@
 
       (call-acc-6-times)
 
-      (assert (equal?
-	       ((acc 's~^Fu*t+GJ6Lmx6 'deposit) 50)
-	       "Whee-oo whee-oo!  The cops have been called"))
+      (assert-error
+       (lambda () (acc 's~^Fu*t+GJ6Lmx6 'deposit) 50)
+	       "Whee-oo whee-oo!  The cops have been called")
       ))
   )
 
