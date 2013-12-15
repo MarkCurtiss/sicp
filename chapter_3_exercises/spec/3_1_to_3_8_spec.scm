@@ -43,6 +43,7 @@
       (assert (equal?
 	       (s 'how-many-calls)
 	       0)))))
+
 (describe "make-account"
   (it "only processes calls if the password is correct"
     (lambda ()
@@ -52,11 +53,13 @@
 	       ((acc 'password 'withdraw) 40)
 	       60))
 
-      (pp ((acc 's~^Fu*t+GJ6Lmx6 'deposit) 50))
+      (assert (equal?
+	       ((acc 'password 'deposit) 20)
+	       80))
 
-      (assert-error
-       (lambda () (acc 's~^Fu*t+GJ6Lmx6 'deposit) 50)
-	       "Incorrect password")
+      (assert (equal?
+	       ((acc 's~^Fu*t+GJ6Lmx6 'deposit) 50)
+	       "Incorrect password"))
       ))
 
   (it "calls the cops if the password is wrong seven times"
@@ -75,6 +78,28 @@
       (assert-error
        (lambda () (acc 's~^Fu*t+GJ6Lmx6 'deposit) 50)
 	       "Whee-oo whee-oo!  The cops have been called")
+      ))
+
+  (it "lets you make joint accounts"
+    (lambda()
+      (define peter-acc (make-account 100 'open-sesame))
+
+      (define paul-acc
+	(make-joint peter-acc 'open-sesame 'rosebud))
+
+      ((peter-acc 'open-sesame 'deposit) 40)
+
+      (assert (equal?
+	       ((paul-acc 'rosebud 'deposit) 60)
+	       200))
+
+      (assert (equal?
+	       ((paul-acc 'rosebud 'withdraw) 80)
+	       120))
+
+      (assert (equal?
+	       ((peter-acc 'open-sesame 'deposit) 15)
+	       135))
       ))
   )
 
@@ -125,7 +150,7 @@
 
       (rand 'generate)
       (rand 'generate)
-      
+
       (assert (equal?
 	       (rand 'generate)
 	       4))

@@ -135,3 +135,12 @@
 
 ; 3.7
 ; ========================================================================
+(define (make-joint existing-account existing-password joint-password)
+  (if (number? ((existing-account existing-password 'deposit) 1))
+      (begin
+	((existing-account existing-password 'withdraw) 1)
+	(lambda (password m)
+	  (if (eq? password joint-password)
+	      (existing-account existing-password m)
+	      (lambda (x) "Incorrect password"))))
+      (error "You don't have access to make a joint account")))
