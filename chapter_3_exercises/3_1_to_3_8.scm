@@ -144,3 +144,10 @@
 	      (existing-account existing-password m)
 	      (lambda (x) "Incorrect password"))))
       (error "You don't have access to make a joint account")))
+
+; 3.8
+; ========================================================================
+(define global-variable 1)
+(define (f value)
+    (set! global-variable (* value global-variable))
+    global-variable)
