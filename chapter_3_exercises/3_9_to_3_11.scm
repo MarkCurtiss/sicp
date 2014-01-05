@@ -42,3 +42,103 @@
 ;;                                                                               |max: 6    |
 ;;                                                                               +----------+ ...
 
+; 3.10
+; ========================================================================
+;; (define W1 (make-withdrawal 100))
+;;
+;;                 +-------------------------+     +--+    params: initial-amount
+;; global-env+---->|         make-withdrawal+----->| +---->body:
+;;                 |                         |     |--|     ((lambda (balance)
+;;        +--------+W1                       |<-----+ |       (lambda (amount)
+;;        |        +-------------------------+     +--+         ...
+;;        |                     ^                             ) initial-amount)
+;;        |            +--------+----------+
+;;        v     E1+--->|initial-amount: 100|
+;;      +--+           +-------------------+
+;;   +---+ |                     ^
+;;   |  |--|             +-------+----+
+;;   |  | +----+  E2+--->|balance: 100|
+;;   |  +--+   |         +------------+
+;;   |         |               ^
+;;   |         +---------------+
+;;   v
+;; params: amount
+;; body:
+;;   (if (>= balance amount)
+;;     ...
+
+
+;; (W1 50)
+;;
+;;                 +-------------------------+     +--+    params: initial-amount
+;; global-env+---->|         make-withdrawal+----->| +---->body:
+;;                 |                         |     |--|     ((lambda (balance)
+;;        +--------+W1                       |<-----+ |       (lambda (amount)
+;;        |        +-------------------------+     +--+         ...
+;;        |                     ^                             ) initial-amount)
+;;        |            +--------+----------+
+;;        v     E1+--->|initial-amount: 100|
+;;      +--+           +-------------------+
+;;   +---+ |                     ^           +--------------+
+;;   |  |--|             +-------+----+      |          +---+------+
+;;   |  | +----+  E2+--->|balance: 100|<-----+   E3+--->|amount: 50|
+;;   |  +--+   |         +------------+                 +----------+
+;;   |         |               ^                    (if (>= balance amount)
+;;   |         +---------------+                      (begin (set! balance (- balance amount))
+;;   v                                                  ...
+;; params: amount
+;; body:
+;;   (if (>= balance amount)
+;;     ...
+;;
+;; Then:
+;;
+;;                 +-------------------------+     +--+    params: initial-amount
+;; global-env+---->|         make-withdrawal+----->| +---->body:
+;;                 |                         |     |--|     ((lambda (balance)
+;;        +--------+W1                       |<-----+ |       (lambda (amount)
+;;        |        +-------------------------+     +--+         ...
+;;        |                     ^                             ) initial-amount)
+;;        |            +--------+----------+
+;;        v     E1+--->|initial-amount: 100|
+;;      +--+           +-------------------+
+;;   +---+ |                     ^
+;;   |  |--|             +-------+----+
+;;   |  | +----+  E2+--->|balance: 100|
+;;   |  +--+   |         +------------+
+;;   |         |               ^
+;;   |         +---------------+
+;;   v
+;; params: amount
+;; body:
+;;   (if (>= balance amount)
+;;     ...
+
+
+;; (define W2 (make-withdrawal 100))
+;;
+;;                 +-------------------------+     +--+    params: initial-amount
+;; global-env+---->|         make-withdrawal+----->| +---->body:
+;;                 |                         |     |--|     ((lambda (balance)
+;;        +--------+W1                     W2|<-----+ |       (lambda (amount)
+;;        |        +------------------------++     +--+         ...
+;;        |                     ^           |^                ) initial-amount)
+;;        |            +--------+----------+|+--------------------------+
+;;        v     E1+--->|initial-amount: 100|+-------+              +----+--------------+
+;;      +--+           +-------------------+        |       E3+--->|initial-amount: 100|
+;;   +---+ |                     ^                  |              +-------------------+
+;;   |  |--|             +-------+----+             |                       ^
+;;   |  | +----+  E2+--->|balance: 100|             v                +------+-----+
+;;   |  +--+   |         +------------+            +--+       E4+--->|balance: 100|
+;;   |         |               ^         +----------+ |              +------------+
+;;   |         +---------------+         |         |--|                   ^
+;;   v                                   |         | +--------------------+
+;; params: amount <----------------------+         +--+
+;; body:
+;;   (if (>= balance amount)
+;;     ...
+
+;; The resultant environment differs from the non-let version of (make-withdraw)
+;; in that the double-lambdas cause the resultant code objects to carry
+;; around references to an environment containing "initial-amount".
+
