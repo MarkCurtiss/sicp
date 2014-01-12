@@ -286,3 +286,17 @@ x+-->|+|+-->|+|+-->|+|/|
 ;; ;Unspecified return value
 ;; 1 ]=> (wrong-count-pairs x)
 ;; ;Aborting!: maximum recursion depth exceeded
+
+; 3.17
+; ========================================================================
+(define (count-pairs x)
+  (define (populate-hash-table x seen-items)
+    (if (null? x)
+	seen-items
+	(begin
+	  (hash-table/put! seen-items x true)
+	  (populate-hash-table (cdr x) seen-items)))
+    )
+
+  (define hash (populate-hash-table x (make-strong-eq-hash-table)))
+  (hash-table/count hash))
