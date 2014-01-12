@@ -300,3 +300,15 @@ x+-->|+|+-->|+|+-->|+|/|
 
   (define hash (populate-hash-table x (make-strong-eq-hash-table)))
   (hash-table/count hash))
+
+; 3.18
+; ========================================================================
+(define (is-cyclical? x)
+  (define (find-cycles x seen-pairs)
+    (cond ((null? x) false)
+	  ((hash-table/get seen-pairs x false) true)
+	  (else
+	   (hash-table/put! seen-pairs x true)
+	   (find-cycles (cdr x) seen-pairs))))
+
+  (find-cycles x (make-strong-eq-hash-table)))
