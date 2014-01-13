@@ -312,3 +312,22 @@ x+-->|+|+-->|+|+-->|+|/|
 	   (find-cycles (cdr x) seen-pairs))))
 
   (find-cycles x (make-strong-eq-hash-table)))
+
+; 3.19
+; ========================================================================
+(define (is-cyclical? x)
+  (define (find-cycles current-node current-index last-visited-node last-index)
+    (cond ((= current-index last-index) false)
+	  ((eq? current-node last-visited-node) true)
+	  (else (find-cycles (cdr current-node)
+			     (+ 1 current-index)
+			     last-visited-node
+			     last-index))))
+
+  (define (iter current i)
+    (cond ((null? current) false)
+	  ((find-cycles x 0 current i) true)
+	  (else (iter (cdr current) (+ 1 i)))))
+
+  (iter x 0)
+  )
