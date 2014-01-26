@@ -109,3 +109,72 @@
 ;; prints (() b).
 
 (define (print-queue queue) (front-ptr queue))
+
+; 3.22
+; ========================================================================
+(define (make-queue)
+  (let ((front-ptr '())
+        (rear-ptr '()))
+
+    (define (set-front-ptr! item)
+      (set! front-ptr item))
+
+    (define (set-rear-ptr! item)
+      (set! rear-ptr item))
+
+    (define (empty?)
+      (null? front-ptr))
+
+    (define (front-queue)
+      (if (empty?)
+	  (error "FRONT called with an empty queue")
+	   front-ptr))
+
+    (define (insert! item)
+      (let ((new-pair (cons item '())))
+	(cond ((empty?)
+	       (set-front-ptr! new-pair)
+	       (set-rear-ptr! new-pair))
+	      (else
+	       (set-cdr! rear-ptr new-pair)
+	       (set-rear-ptr! new-pair)))))
+
+    (define (delete!)
+      (if (empty?)
+	  (error "DELETE! called with an empty queue")
+	  (set-front-ptr! (cdr front-ptr))))
+
+    (define (print)
+      front-ptr)
+
+    (define (dispatch m)
+      (cond ((eq? m 'front-ptr) front-ptr)
+	    ((eq? m 'rear-ptr) rear-ptr)
+	    ((eq? m 'set-front-ptr!) set-front-ptr!)
+	    ((eq? m 'set-rear-ptr!) set-rear-ptr!)
+	    ((eq? m 'empty?) empty?)
+	    ((eq? m 'front) front-queue)
+	    ((eq? m 'insert!) insert!)
+	    ((eq? m 'delete!) delete!)
+	    ((eq? m 'print) print)
+	    (else (error "INVALID MESSAGE " m))))
+      dispatch))
+
+(define (front-ptr queue)
+  (queue 'front-ptr))
+(define (rear-ptr queue)
+  (queue 'rear-ptr))
+(define (set-front-ptr! queue item)
+  ((queue 'set-front-ptr!) item))
+(define (set-rear-ptr! queue item)
+  ((queue 'set-rear-ptr!) item))
+(define (empty-queue? queue)
+  ((queue 'empty?)))
+(define (front-queue queue)
+  ((queue 'front)))
+(define (insert-queue! queue item)
+  ((queue 'insert!) item))
+(define (delete-queue! queue)
+  ((queue 'delete!)))
+(define (print-queue queue)
+  ((queue 'print)))
