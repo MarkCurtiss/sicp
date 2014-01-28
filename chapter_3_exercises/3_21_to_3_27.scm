@@ -178,3 +178,89 @@
   ((queue 'delete!)))
 (define (print-queue queue)
   ((queue 'print)))
+
+; 3.23
+; ========================================================================
+
+(define (make-node item)
+  (cons '() (cons item '())))
+
+(define (get-next-ptr-node node)
+  (cddr node))
+
+(define (get-prev-ptr-node node)
+  (car node))
+
+(define (set-next-ptr-node! node item)
+  (set-cdr! (cdr node) item))
+
+(define (set-prev-ptr-node! node item)
+  (set-car! node item))
+
+(define (get-value-node node)
+  (cadr node))
+
+
+(define (make-dequeue)
+  (cons '() '())
+  )
+
+(define (empty-dequeue? dequeue)
+  (null? (front-dequeue dequeue)))
+
+(define (front-dequeue dequeue)
+  (car dequeue))
+
+(define (rear-dequeue dequeue)
+  (cdr dequeue))
+
+(define (set-start-ptr! dequeue item)
+  (set-car! dequeue item))
+
+(define (set-end-ptr! dequeue item)
+  (set-cdr! dequeue item))
+
+(define (rear-insert-dequeue! dequeue item)
+  (let ((new-node (make-node item)))
+    (cond ((empty-dequeue? dequeue)
+	   (set-start-ptr! dequeue new-node)
+	   (set-end-ptr! dequeue new-node))
+	  (else
+	   (set-next-ptr-node! (rear-dequeue dequeue) new-node)
+	   (set-prev-ptr-node! new-node (rear-dequeue dequeue))
+	   (set-end-ptr! dequeue new-node))))
+  )
+
+(define (front-insert-dequeue! dequeue item)
+  (let ((new-node (make-node item)))
+    (cond ((empty-dequeue? dequeue)
+	   (set-start-ptr! dequeue new-node)
+	   (set-end-ptr! dequeue new-node))
+	  (else
+	   (set-next-ptr-node! new-node (front-dequeue dequeue))
+	   (set-prev-ptr-node! (front-dequeue dequeue) new-node)
+	   (set-start-ptr! dequeue new-node)))))
+
+(define (front-delete-deque! dequeue)
+  (if (empty-dequeue? dequeue)
+      (error "front-delete-deque! called on an empty dequeue")
+      (set-start-ptr!
+       dequeue
+       (get-next-ptr-node (front-dequeue dequeue)))))
+
+(define (rear-delete-dequeue! dequeue)
+  (if (empty-dequeue? dequeue)
+      (error "rear-delete-deque! called on an empty dequeue")
+      (begin
+	(set-end-ptr! dequeue (get-prev-ptr-node (rear-dequeue dequeue)))
+	(set-next-ptr-node! (rear-dequeue dequeue) '()))))
+
+(define (print-dequeue dequeue)
+  (define (iter node results)
+    (if (null? node)
+	results
+	(iter
+	 (get-next-ptr-node node)
+	 (append results (list (get-value-node node))))))
+
+  (iter (front-dequeue dequeue) '()))
