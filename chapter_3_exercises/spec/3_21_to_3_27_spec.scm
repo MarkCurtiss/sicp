@@ -146,4 +146,23 @@
       (assert (equal?
 	       ((table 'lookup) 4)
 	       false))))
+
+  (it "defines a table of arbitrarily many keys"
+    (lambda ()
+      (define multi-key-table (make-multi-key-table))
+
+      ((multi-key-table 'insert!) '(1 2 3) 6)
+      ((multi-key-table 'insert!) '(1) 8)
+
+      (assert (equal?
+	       ((multi-key-table 'lookup) '(1 2 3))
+	       6))
+
+      (assert (equal?
+	       ((multi-key-table 'lookup) '(1))
+	       8))
+
+      (assert (equal?
+	       ((multi-key-table 'lookup) '(1 2))
+	       false))))
 )
