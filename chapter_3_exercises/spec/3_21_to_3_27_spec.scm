@@ -130,4 +130,20 @@
 
 )
 
+(describe "Tables"
+  (it "lets you define your own equality test"
+    (lambda ()
+      (define (double-key? key-1 key-2) (= (* 2 key-1) key-2))
 
+      (define table (make-table double-key?))
+
+      ((table 'insert!) 4 9)
+
+      (assert (equal?
+	       ((table 'lookup) 2)
+	       9))
+
+      (assert (equal?
+	       ((table 'lookup) 4)
+	       false))))
+)
