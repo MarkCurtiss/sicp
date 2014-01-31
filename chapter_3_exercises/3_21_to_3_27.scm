@@ -333,3 +333,33 @@
 
 ;; This reduces the complexity of insertion and retrieval from O(n) to
 ;; O(log(n)).
+
+; 3.27
+; ========================================================================
+"
+              +---------------------------------------+       +-+  params: f
+global-env+-->|                               memoize+------->|+-->body:
+              |                                       |       +-+    ((let (table (make-table)))
+              |                                       |<-------+|      (lambda (x)
+              |                                       |       +-+        ...
+  +------------+memo-fib                              |
+  |           +---------------------------------------+
+  |                           ^
+  |                           |
+  |                           |
+  |                  +--------+-----+             +-------------+
+  |            E1+-->|table: 0 -> 0 |       E2+-->|x: 3         |
+  |                  |       1 -> 1 |<-----------+|             |
+  +                  |       2 -> 1 |             +-------------+
+params: x +--------> +--------------+
+body:
+  (let ((previously-computed-result (lookup x table)))
+    (or previously-computed-result
+      (let ((result (f x)))
+      ...
+"
+
+;; Each result of (fib) only has to be computed once and is then saved away
+;; forever, so the calculation has linear growth.  If we only cached the
+;; call to (fib) we'd still wind up recomputing (fib (- n 1)) and (fib (- n 2))
+;; every time.
