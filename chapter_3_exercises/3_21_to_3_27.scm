@@ -323,3 +323,13 @@
             (else (error "Unknown operation -- TABLE" m))))
     dispatch))
 
+; 3.26
+; ========================================================================
+;; The head pointer will point to the root node of the binary tree.  (insert!)
+;; will find the appropriate place for the key using the same traversal
+;; algorithm as in 2.66 (if the node contains your key, return that. if it is
+;; greater than your key, traverse the left subtree.  otherwise, traverse the
+;; right subtree.  (lookup) will use the same algorithm.
+
+;; This reduces the complexity of insertion and retrieval from O(n) to
+;; O(log(n)).
