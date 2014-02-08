@@ -66,3 +66,12 @@
 ;; The delay time will be
 ;; n * (2 * (half-adder + or-gate)) ==
 ;; n * ((2 * (or-gate + (2 * and-gate) + inverter)) + or-gate)
+
+; 3.31
+; ========================================================================
+;; If we didn't invoke the callback right away we wouldn't actually place
+;; events in the agenda when we construct half-adders and or-gates and such.
+;; Thus, the simulation wouldn't produce any output.
+
+; 3.32
+; ========================================================================
