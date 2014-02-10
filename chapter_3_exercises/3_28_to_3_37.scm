@@ -269,3 +269,46 @@
 ;; Probe: B = 11
 ;; Probe: C = 10
 ;; ;Value: done
+
+; 3.34
+; ========================================================================
+;; Changes to the value of b won't propagate back to a.
+
+;; 1 ]=> (define (squarer a b)
+;;   (multiplier a a b))
+;; Value: squarer
+
+;; 1 ]=> (define R (make-connector))
+;; Value: r
+
+;; 1 ]=> (define S (make-connector))
+;; Value: s
+
+;; 1 ]=> (probe "R" R)
+;; Value 5: #[compound-procedure 5 me]
+
+;; 1 ]=> (probe "S" S)
+;; Value 6: #[compound-procedure 6 me]
+
+;; 1 ]=> (squarer R S)
+;; Value 7: #[compound-procedure 7 me]
+
+;; 1 ]=> (set-value! R 4 'user)
+;; Probe: S = 16
+;; Probe: R = 4
+;; Value: done
+
+;; So far so good.  But now, observe:
+;; 1 ]=> (forget-value! R 'user)
+;; Probe: S = ?
+;; Probe: R = ?
+;; Value: done
+
+;; 1 ]=> (set-value! S 16 'user)
+;; Probe: S = 16
+;; Value: done
+
+;; Notice that we don't see the value of R change.
+;; This is because none of the conditionals in (process-new-value) in
+;; (multiplier m1 m2 product) will ever be hit - although product has a value
+;; neither m1 nor m2 have a value in Louis Reasoner's implementation.
