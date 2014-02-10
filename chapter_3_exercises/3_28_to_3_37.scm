@@ -75,3 +75,13 @@
 
 ; 3.32
 ; ========================================================================
+;; queue
+;; (A 0 -> 1, B 0 -> 1, A 1 -> 0, B 1 -> 0)
+
+;; stack
+;; (B 1 -> 0, A 1 -> 0, B 0 -> 1, A 0 -> 1)
+
+;; If a stack were used, the AND gate would appear to go (incorrectly):
+;; False, False, False, True
+;; If the queue is used, the AND gate properly signals:
+;; False, True, False, False.
