@@ -312,3 +312,61 @@
 ;; This is because none of the conditionals in (process-new-value) in
 ;; (multiplier m1 m2 product) will ever be hit - although product has a value
 ;; neither m1 nor m2 have a value in Louis Reasoner's implementation.
+
+; 3.35
+; ========================================================================
+(define (squarer a b)
+  (define (process-new-value)
+    (if (has-value? b)
+        (if (< (get-value b) 0)
+            (error "square less than 0 -- SQUARER" (get-value b))
+	    (set-value! a (sqrt (get-value b)) me))
+	(if (has-value? a)
+	    (set-value! b (square (get-value a)) me))))
+
+  (define (process-forget-value)
+    (forget-value! a me)
+    (forget-value! b me)
+    (process-new-value))
+
+  (define (me request)
+    (cond ((eq? request 'I-have-a-value)
+           (process-new-value))
+          ((eq? request 'I-lost-my-value)
+           (process-forget-value))
+          (else
+           (error "Unknown request -- SQUARER" request))))
+  (connect a me)
+  (connect b me)
+  me)
+
+;; 1 ]=> (define R (make-connector))
+;; Value: r
+
+;; 1 ]=> (define S (make-connector))
+;; Value: s
+
+;; 1 ]=> (probe "R" R)
+;; Value 8: #[compound-procedure 8 me]
+
+;; 1 ]=> (probe "S" S)
+;; Value 9: #[compound-procedure 9 me]
+
+;; 1 ]=> (squarer R S)
+;; Value 10: #[compound-procedure 10 me]
+
+;; 1 ]=> (set-value! R 4 'user)
+
+;; Probe: S = 16
+;; Probe: R = 4
+;; Value: done
+
+;; 1 ]=> (forget-value! R 'user)
+;; Probe: S = ?
+;; Probe: R = ?
+;; Value: done
+
+;; 1 ]=> (set-value! S 16 'user)
+;; Probe: R = 4
+;; Probe: S = 16
+;; Value: done
