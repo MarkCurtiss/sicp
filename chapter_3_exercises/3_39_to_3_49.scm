@@ -209,3 +209,42 @@
 	   (if (mutex-can-be-released?)
 	       (release-mutex))))))
 
+; 3.48
+; ========================================================================
+;; Instead of each mutex running at the same priority level, one can gain
+;; precedence over the other.  This lets each process still run uninterrupted
+;; but also allows one to pre-empt the other rather than deadlock.
+;; Note you could still deadlock if two processes had the same priority level.
+(define (make-account balance priority)
+  (define (withdraw amount)
+    (if (>= balance amount)
+        (begin (set! balance (- balance amount))
+               balance)
+        "Insufficient funds"))
+  (define (deposit amount)
+    (set! balance (+ balance amount))
+    balance)
+  (let ((balance-serializer (make-serializer)))
+    (define (dispatch m)
+      (cond ((eq? m 'withdraw) withdraw)
+            ((eq? m 'deposit) deposit)
+            ((eq? m 'balance) balance)
+	    ((eq? m 'serializer) balance-serializer)
+	    ((eq? m 'priority) priority)
+            (else (error "Unknown request -- MAKE-ACCOUNT"
+                         m))))
+    dispatch))
+
+(define (serialized-exchange account1 account2)
+  (let ((serializer1 (account1 'serializer))
+	(serializer2 (account2 'serializer)))
+    (if (> (account1 'priority) (account2 'priority))
+	((serializer1 (serializer2 exchange)) account1 account2)
+	((serializer2 (serializer1 exchange)) account2 account1))))
+
+; 3.49
+; ========================================================================
+;; I'm envisioning a scenario where account1 has to aks the bank manager for
+;; access to account2 and at the same time account2 is aksing the bank manager
+;; for access to account1.  If these two requests take place at the same priority
+;; level there'll be no way to resolve the deadlock.
