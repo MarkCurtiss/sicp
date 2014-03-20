@@ -44,3 +44,54 @@
 ;; 6
 ;; 7
 ;; ;Value: 7
+
+; 3.52
+; ========================================================================
+;; 1 ]=> (define sum 0)
+;; ;Value: sum
+
+;; 1 ]=> (define (accum x)
+;;   (set! sum (+ x sum))
+;;   sum)
+;; ;Value: accum
+
+;; 1 ]=> (define seq (stream-map accum (stream-enumerate-interval 1 20)))
+;; ;Value: seq
+
+;; 1 ]=> (define y (stream-filter even? seq))
+;; ;Value: y
+
+;; 1 ]=> (define z (stream-filter (lambda (x) (= (remainder x 5) 0))
+;;                          seq))
+;; ;Value: z
+
+;; 1 ]=> (stream-ref y 7)
+;; ;Value: 136
+
+;; 1 ]=> (display-stream z)
+;; 10
+;; 15
+;; 45
+;; 55
+;; 105
+;; 120
+;; 190
+;; 210
+;; ;Unspecified return value
+
+;; If our implementation of (delay) wasn't memo-ized, (stream-ref y 7) would still
+;; produce the same result but (display-stream z) wouldn't.  Since the variable
+;; sum is getting set as a side effect of mapping over the stream, iterating over z
+;; after iterating over y means you'd be essentially starting at the 8th element
+;; in y's sequence.
+;; In the memo-ized version, each element of the stream is only getting set once
+;; so you get the same result every time you map over it.
+
+; 3.53
+; ========================================================================
+;; The stream's elements look like
+;; 0: 1
+;; 1: (1 + 1, (delay add-streams s s)) = 2
+;; 2: (1 + 1) + (1 + 1), (delay add-streams s s) = 4
+;; 3: (1 + 1 + 1 + 1) + (1 + 1 + 1 + 1), (delay add-streams s s) = 8
+;; Each element is double the previous element.
