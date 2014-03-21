@@ -95,3 +95,17 @@
 ;; 2: (1 + 1) + (1 + 1), (delay add-streams s s) = 4
 ;; 3: (1 + 1 + 1 + 1) + (1 + 1 + 1 + 1), (delay add-streams s s) = 8
 ;; Each element is double the previous element.
+
+; 3.54
+; ========================================================================
+(define ones (cons-stream 1 ones))
+
+(define (add-streams s1 s2)
+  (stream-map + s1 s2))
+
+(define integers (cons-stream 1 (add-streams ones integers)))
+
+(define (mul-streams s1 s2)
+  (stream-map * s1 s2))
+
+(define factorial (cons-stream 1 (mul-streams integers factorial)))
