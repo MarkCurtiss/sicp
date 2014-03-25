@@ -113,4 +113,4 @@
 ; 3.55
 ; ========================================================================
 (define (partial-sums s)
-  (cons-stream s (add-streams s (partial-sums s))))
+  (cons-stream (stream-car s) (add-streams (stream-cdr s) (partial-sums s))))
