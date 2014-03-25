@@ -109,3 +109,8 @@
   (stream-map * s1 s2))
 
 (define factorial (cons-stream 1 (mul-streams integers factorial)))
+
+; 3.55
+; ========================================================================
+(define (partial-sums s)
+  (cons-stream s (add-streams s (partial-sums s))))
