@@ -140,3 +140,36 @@
 			  (merge
 			   (scale-stream S 3)
 			   (scale-stream S 5)))))
+
+; 3.57
+; ========================================================================
+;; You perform n - 1 additions to compute the nth Fibonacci number.
+;; If we didn't cache results, each Fibonacci number would have to recompute
+;; each Fibonacci number that came before it.
+;; So (fib 5) would have to compute (fib 4) (fib 3)... and (fib 4) would
+;; have to compute (fib 3) (fib 2)...
+;; That looks awful exponential to me!
+
+; 3.58
+; ========================================================================
+(define (expand num den radix)
+  (cons-stream
+   (quotient (* num radix) den)
+   (expand (remainder (* num radix) den) den radix)))
+;; This stream divides the numerator by the denomiator in that radix
+;; and returns the decimal representation one digit at a time.
+;; For example, (expand 5 20 10) == (2 5 0 0 0 ...) == .25000
+
+;; 1 ]=> (stream-ref (expand 1 7 10) 0)
+;; ;Value: 1
+;; 1 ]=> (stream-ref (expand 1 7 10) 1)
+;; ;Value: 4
+;; 1 ]=> (stream-ref (expand 1 7 10) 2)
+;; ;Value: 2
+
+;; 1 ]=> (stream-ref (expand 3 8 10) 0)
+;; ;Value: 3
+;; 1 ]=> (stream-ref (expand 3 8 10) 1)
+;; ;Value: 7
+;; 1 ]=> (stream-ref (expand 3 8 10) 2)
+;; ;Value: 5
