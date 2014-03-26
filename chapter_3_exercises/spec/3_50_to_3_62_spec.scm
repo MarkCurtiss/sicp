@@ -4,8 +4,8 @@
   (it "computes factorials"
     (lambda ()
       (assert (equal?
-	       (stream-ref factorial 4)
-	       24))))
+	       (first-n-elements-of-stream factorial 4)
+	       '(1 2 6 24)))))
 )
 
 (describe "Partial sums"
@@ -14,30 +14,15 @@
       (define partial-ints (partial-sums integers))
 
       (assert (equal?
-	       (stream-ref partial-ints 0)
-	       1))
-
-      (assert (equal?
-	       (stream-ref partial-ints 2)
-	       6))
-
-      (assert (equal?
-	       (stream-ref partial-ints 4)
-	       15))))
+	       (first-n-elements-of-stream partial-ints 5)
+	       '(1 3 6 10 15)))))
 )
 
 (describe "Hamming streams"
   (it "contains positive integers with no factors other than 2, 3, 5"
     (lambda ()
-      (assert (equal?
-	       (stream-ref S 0)
-	       1))
 
       (assert (equal?
-	       (stream-ref S 1)
-	       2))
-
-      (assert (equal?
-	       (stream-ref S 7)
-	       9))))
+	      (first-n-elements-of-stream S 12)
+	      '(1 2 3 4 5 6 8 9 10 12 15 16)))))
 )

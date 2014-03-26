@@ -108,7 +108,17 @@
 (define (mul-streams s1 s2)
   (stream-map * s1 s2))
 
-(define factorial (cons-stream 1 (mul-streams integers factorial)))
+(define (first-n-elements-of-stream stream n)
+  (define (iter list s index)
+    (if (= index n)
+	list
+	(iter (cons (stream-car s) list)
+	      (stream-cdr s)
+	      (+ index 1))))
+
+  (reverse (iter '() stream 0)))
+
+(define factorial (cons-stream 1 (mul-streams (stream-cdr integers) factorial)))
 
 ; 3.55
 ; ========================================================================
@@ -173,3 +183,10 @@
 ;; ;Value: 7
 ;; 1 ]=> (stream-ref (expand 3 8 10) 2)
 ;; ;Value: 5
+
+; 3.59
+; ========================================================================
+;; a.
+(define (integrate-series power-series)
+  (stream-map / power-series integers))
+
