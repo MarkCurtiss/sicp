@@ -190,3 +190,33 @@
 (define (integrate-series power-series)
   (stream-map / power-series integers))
 
+;; b.
+(define cosine-series
+  (cons-stream 1 (integrate-series sine-series)))
+
+(define sine-series
+  (cons-stream 1 (integrate-series cosine-series)))
+
+; 3.60
+; ========================================================================
+(define (mul-series s1 s2)
+  (cons-stream (* (stream-car s1) (stream-car s2))
+	       (add-streams
+		(mul-series (stream-cdr s1)
+			    (stream-cdr s2)))))
+
+; 3.61
+; ========================================================================
+(define (invert-unit-series S)
+  (cons-stream 1 (mul-series (scale-stream (stream-cdr S) -1)
+			     (invert-unit-series S))))
+
+; 3.62
+; ========================================================================
+(define (div-series numerator denominator)
+  (if (= (stream-car denominator) 0)
+      (error "div-series cannot handle 0 denominator")
+      (mul-series numerator (invert-unit-series denominator))))
+
+(define tangent-series
+  (div-series sine-series cosine-series))
