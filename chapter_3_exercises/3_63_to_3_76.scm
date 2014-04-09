@@ -135,3 +135,37 @@
      (stream-map (lambda (x) (list (stream-car t) x))
 		 (stream-cdr s))
      (all-pairs (stream-cdr s) (stream-cdr t))))))
+
+; 3.68
+; ========================================================================
+(define (louis-pairs s t)
+  (interleave
+   (stream-map (lambda (x) (list (stream-car s) x))
+               t)
+   (louis-pairs (stream-cdr s) (stream-cdr t))))
+
+;; 1 ]=> (first-n-elements-of-stream (louis-pairs integers integers) 11)
+;; Aborting!: maximum recursion depth exceeded
+
+;; Why do they even let Louis write code?  His version recurses indefinitely
+;; 'cuz there is no (cons-stream) call to delay evaluation - (interleave)
+;; tries to evaluate the calls to (stream-cdr) right away.
+
+; 3.69
+; ========================================================================
+(define (triples s t u)
+  (cons-stream
+   (list (stream-car s)
+	 (stream-car t)
+	 (stream-car u))
+   (interleave
+    (stream-map (lambda (x y) (list (stream-car s) x y))
+		(stream-cdr t)
+		(stream-cdr u))
+    (interleave
+     (stream-map (lambda (x y) (list (stream-car s) x y))
+		 (stream-cdr t)
+		 (stream-cdr (stream-cdr u)))
+     (triples (stream-cdr s)
+	      (stream-cdr t)
+	      (stream-cdr u))))))
