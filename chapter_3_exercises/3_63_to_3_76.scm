@@ -122,3 +122,16 @@
 ;; is (2^n)-1.  So to get (5, anything) you have to look at the at 31st element
 ;; in the stream.  Thus pair (99, 100) should appear at (2^99 - 1) elements
 ;; into the stream.  The pair (100, 100) should appear at (2^100 - 1).
+
+; 3.67
+; ========================================================================
+(define (all-pairs s t)
+  (cons-stream
+   (list (stream-car s) (stream-car t))
+   (interleave
+    (stream-map (lambda (x) (list (stream-car s) x))
+		(stream-cdr t))
+    (interleave
+     (stream-map (lambda (x) (list (stream-car t) x))
+		 (stream-cdr s))
+     (all-pairs (stream-cdr s) (stream-cdr t))))))
