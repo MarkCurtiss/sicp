@@ -113,8 +113,12 @@
 ;; Value 11: ((1 1) (1 2) (2 2) (1 3) (2 3) (1 4) (3 3) (1 5) (2 4) (1 6) (3 4) (1 7) (2 5) (1 8) (4 4) (1 9) (2 6) (1 10) (3 5) (1 11) (2 7) (1 12) (4 5) (1 13) (2 8) (1 14) (3 6) (1 15) (2 9) (1 16) (5 5) (1 17) (2 10) (1 18) (3 7) (1 19) (2 11) (1 20) (4 6) (1 21))
 ;; The pairs are entering the stream as
 ;; (
- ;;  (car S0, cdr T)
+;;  (car S0, cdr T)
 ;;  (cdr S, cdr T)
 ;; )
 
 ;; So about 200 pairs will precede (1, 100).  (The actual number is 197).
+;; The (car) of each pair is increasing every 2^n time.  I think the formula
+;; is (2^n)-1.  So to get (5, anything) you have to look at the at 31st element
+;; in the stream.  Thus pair (99, 100) should appear at (2^99 - 1) elements
+;; into the stream.  The pair (100, 100) should appear at (2^100 - 1).

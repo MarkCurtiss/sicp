@@ -3,7 +3,7 @@
 (define (multi-stream-map proc . argstreams)
   (if (null? (stream-car (car argstreams)))
       the-empty-stream
-      (stream-cons
+      (cons-stream
        (apply proc (map stream-car argstreams))
        (apply multi-stream-map
               (cons proc (map stream-cdr argstreams))))))
