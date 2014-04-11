@@ -71,3 +71,68 @@
 	       '(5 12 13)))
       ))
   )
+
+(describe "merge-weighted"
+  (it "merges two streams according to a weighting function"
+    (lambda ()
+      (define (penalize-ones x)
+	(if (= x 1)
+	   1
+	   0))
+
+      (define no-ones (merge-weighted ones (stream-cdr integers) penalize-ones))
+
+      (assert (equal?
+	       (first-n-elements-of-stream no-ones 6)
+	       '(2 3 4 5 6 7)))
+      ))
+  )
+
+(describe "weighted-pairs"
+  (it "produces pairs of positive integers i <= j weighted by i+j"
+    (lambda ()
+      (define (weight pair)
+	(+ (car pair) (cadr pair)))
+
+      (define i-lt-j (weighted-pairs integers integers weight))
+
+      (assert (equal?
+	       (first-n-elements-of-stream i-lt-j 6)
+	       '(
+		 (1 1)
+		 (1 2)
+		 (1 3)
+		 (1 4)
+		 (1 5)
+		 (2 4)
+		 )))))
+
+  (it "produces pairs of positive integers i <= j where i and j aren't divisible by 2, 3 or 5 and weighted by 2i + 3j + 5ij"
+      (lambda ()
+	(define (weight pair)
+	  (let ((i (car pair))
+		(j (cadr pair)))
+	    (+ (* 2 i) (* 3 j) (* 5 i j))))
+
+	(define (not-divisible-by-2-3-5? x)
+	  (and
+	   (not (= (remainder x 2) 0))
+	   (not (= (remainder x 3) 0))
+	   (not (= (remainder x 5) 0))))
+
+	(define special-numbers (stream-filter not-divisible-by-2-3-5? integers))
+	(define special-stream (weighted-pairs special-numbers special-numbers weight))
+
+	(assert (equal?
+		 (first-n-elements-of-stream special-stream 6)
+		 '(
+		   (1 1)
+		   (1 7)
+		   (1 11)
+		   (1 13)
+		   (1 17)
+		   (1 19)
+		   )
+		 ))
+      ))
+  )
