@@ -185,7 +185,7 @@
                  (else
                   (cons-stream s1car
                                (merge-weighted (stream-cdr s1)
-                                      (stream-cdr s2) weight))))))))
+                                      s2 weight))))))))
 
 (define (weighted-pairs s t weight)
   (cons-stream
@@ -193,6 +193,22 @@
    (merge-weighted
     (stream-map (lambda (x) (list (stream-car s) x))
                 (stream-cdr t))
-    (pairs (stream-cdr s) (stream-cdr t))
+    (weighted-pairs (stream-cdr s) (stream-cdr t) weight)
     weight)
    ))
+
+; 3.71
+; ========================================================================
+(define (ramanujan-numbers n)
+  (define (sum-cubes pair)
+    (+ (expt (car pair) 3)
+       (expt (cadr pair) 3)))
+
+  (define sum-of-cubes (stream-map sum-cubes (weighted-pairs integers integers sum-cubes)))
+
+  (define (raj-numbers s)
+    (if (= (stream-car s) (stream-car (stream-cdr s)))
+	(cons-stream (stream-car s) (raj-numbers (stream-cdr (stream-cdr s))))
+	(raj-numbers (stream-cdr s))))
+
+  (first-n-elements-of-stream (raj-numbers sum-of-cubes) n))

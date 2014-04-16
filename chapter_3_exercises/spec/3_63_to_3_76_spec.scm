@@ -102,9 +102,9 @@
 		 (1 1)
 		 (1 2)
 		 (1 3)
+		 (2 2)
 		 (1 4)
-		 (1 5)
-		 (2 4)
+		 (2 3)
 		 )))))
 
   (it "produces pairs of positive integers i <= j where i and j aren't divisible by 2, 3 or 5 and weighted by 2i + 3j + 5ij"
@@ -135,4 +135,11 @@
 		   )
 		 ))
       ))
+
+  (it "finds Ramanujan numbeers"
+    (lambda ()
+      (assert (equal?
+	       (ramanujan-numbers 5)
+	       '(1729 4104 13832 20683 32832)
+	       ))))
   )
