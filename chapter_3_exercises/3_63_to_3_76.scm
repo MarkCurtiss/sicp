@@ -212,3 +212,22 @@
 	(raj-numbers (stream-cdr s))))
 
   (first-n-elements-of-stream (raj-numbers sum-of-cubes) n))
+
+; 3.72
+; ========================================================================
+(define (some-other-stupid-random-math-stream-that-the-authors-find-interesting n)
+  (define (sum-squares pair)
+    (+ (square (car pair))
+       (square (cadr pair))))
+
+  (define stream (weighted-pairs integers integers sum-squares))
+
+  (define (numbers s)
+    (let ((s1 (stream-car s))
+	  (s2 (stream-car (stream-cdr s)))
+	  (s3 (stream-car (stream-cdr (stream-cdr s)))))
+    (if (= (sum-squares s1) (sum-squares s2) (sum-squares s3))
+	(cons-stream (list (sum-squares s1) s1 s2 s3) (numbers (stream-cdr (stream-cdr (stream-cdr s)))))
+	(numbers (stream-cdr s)))))
+
+  (first-n-elements-of-stream (numbers stream) n))

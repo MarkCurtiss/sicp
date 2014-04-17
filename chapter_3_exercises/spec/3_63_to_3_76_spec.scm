@@ -142,4 +142,12 @@
 	       (ramanujan-numbers 5)
 	       '(1729 4104 13832 20683 32832)
 	       ))))
+
+  (it "makes some other stupid random math stream that the authors find interesting"
+    (lambda ()
+      (assert (equal?
+	       (some-other-stupid-random-math-stream-that-the-authors-find-interesting 2)
+	       '((325 (1 18) (6 17) (10 15))
+		 (425 (5 20) (8 19) (13 16)))
+	       ))))
   )
