@@ -199,7 +199,7 @@
 
 ; 3.71
 ; ========================================================================
-(define (ramanujan-numbers n)
+(define (ramanujan-numbers)
   (define (sum-cubes pair)
     (+ (expt (car pair) 3)
        (expt (cadr pair) 3)))
@@ -211,7 +211,7 @@
 	(cons-stream (stream-car s) (raj-numbers (stream-cdr (stream-cdr s))))
 	(raj-numbers (stream-cdr s))))
 
-  (first-n-elements-of-stream (raj-numbers sum-of-cubes) n))
+  (raj-numbers sum-of-cubes))
 
 ; 3.72
 ; ========================================================================
@@ -231,3 +231,35 @@
 	(numbers (stream-cdr s)))))
 
   (first-n-elements-of-stream (numbers stream) n))
+
+; 3.73
+; ========================================================================
+(define (scale-stream stream factor)
+  (stream-map (lambda (x) (* x factor)) stream))
+
+(define (integral integrand initial-value dt)
+  (define int
+    (cons-stream initial-value
+                 (add-streams (scale-stream integrand dt)
+                              int)))
+  int)
+
+(define (RC R C dt)
+  (define (voltage current-stream initial-voltage)
+    (add-streams
+     (scale-stream current-stream R)
+     (integral (scale-stream current-stream (/ 1 C)) initial-voltage dt))
+    )
+
+  voltage
+  )
+
+; 3.74
+; ========================================================================
+(define (sign-change-detector current-value last-value)
+  (cond ((and (<= last-value 0) (positive? current-value)) +1)
+	((and (>= last-value 0) (negative? current-value)) -1)
+	(else 0)))
+
+(define (zero-crossings sense-data)
+  (stream-map sign-change-detector (stream-cdr sense-data) sense-data))

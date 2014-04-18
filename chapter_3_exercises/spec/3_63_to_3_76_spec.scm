@@ -139,7 +139,7 @@
   (it "finds Ramanujan numbeers"
     (lambda ()
       (assert (equal?
-	       (ramanujan-numbers 5)
+	       (first-n-elements-of-stream (ramanujan-numbers) 5)
 	       '(1729 4104 13832 20683 32832)
 	       ))))
 
@@ -150,4 +150,30 @@
 	       '((325 (1 18) (6 17) (10 15))
 		 (425 (5 20) (8 19) (13 16)))
 	       ))))
+  )
+
+(describe "RC circuits"
+  (it "models an RC circuit as a stream of voltages"
+    (lambda()
+      (define RC1 (RC 5 1 0.5))
+      (define current ones)
+      (define initial-voltage 1)
+
+      (assert (equal?
+	       (first-n-elements-of-stream (RC1 current initial-voltage) 3)
+	       '(6 6.5 7.))
+      )))
+
+  )
+
+(describe "Zero crossings"
+  (it "detects when a signal cross the zero threshold"
+    (lambda ()
+      (define (input-stream)
+	(cons-stream 0 (cons-stream -2 (cons-stream 3 (cons-stream 2 (cons-stream 1 (input-stream)))))))
+
+      (assert (equal?
+	       (first-n-elements-of-stream (zero-crossings (input-stream)) 4)
+	       '(-1 +1 0 0)))
+      ))
   )
