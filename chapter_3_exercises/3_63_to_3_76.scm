@@ -263,3 +263,27 @@
 
 (define (zero-crossings sense-data)
   (stream-map sign-change-detector (stream-cdr sense-data) sense-data))
+
+; 3.75
+; ========================================================================
+;; Louis Reasoner's solution is passing the last average as the last value!
+(define (make-zero-crossings input-stream last-value last-avg)
+  (let ((avpt (/ (+ (stream-car input-stream) last-value) 2)))
+    (cons-stream (sign-change-detector avpt last-avg)
+                 (make-zero-crossings
+		  (stream-cdr input-stream)
+		  (stream-car input-stream)
+		  avpt))))
+
+; 3.76
+; ========================================================================
+(define (smooth s)
+  (define (avg x y) (/ (+ x y) 2))
+
+  (cons-stream
+   (avg (stream-car s) (stream-car (stream-cdr s)))
+   (smooth (stream-cdr s)))
+  )
+
+(define (smoothed-zero-crossings sense-data)
+  (stream-map sign-change-detector (smooth (stream-cdr sense-data)) (smooth sense-data)))

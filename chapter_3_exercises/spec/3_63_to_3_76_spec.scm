@@ -177,3 +177,15 @@
 	       '(-1 +1 0 0)))
       ))
   )
+
+(describe "Smoothing streams"
+  (it "averages sucessive stream inputs"
+    (lambda ()
+      (define input-stream
+	(stream 1 3 5 27 249))
+
+      (assert (equal?
+	       (first-n-elements-of-stream (smooth input-stream) 3)
+	       '(2 4 16)))
+      ))
+  )
