@@ -20,3 +20,27 @@
 				 (+ (* dt (stream-car integrand))
 				    initial-value)
 				 dt)))))
+
+; 3.78
+; ========================================================================
+(define (first-n-elements-of-stream stream n)
+  (define (iter list s index)
+    (if (= index n)
+	list
+	(iter (cons (stream-car s) list)
+	      (stream-cdr s)
+	      (+ index 1))))
+
+  (reverse (iter '() stream 0)))
+
+(define (solve-2nd a b dt y0 dy0)
+  (define y (integral (delay dy) y0 dt))
+  (define dy (integral (delay ddy) dy0 dt))
+  (define ddy
+    (add-streams
+     (scale-stream dy a)
+     (scale-stream y b)))
+  y)
+
+; 3.79
+; ========================================================================
