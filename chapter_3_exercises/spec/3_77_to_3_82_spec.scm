@@ -26,7 +26,10 @@
 
   (it "can solve some other type of 2nd order differential equations"
     (lambda ()
-      (define f (lamdba (x y) (+ (square x) (cube y))))
+      (define 2nd-deriv-test (solve-2nd-with-f * 3 5 8))
 
-      (define 2nd-deriv-test (solve-2nd-f 2 3 5 8 13 f))
+      (assert (equal?
+	       (first-n-elements-of-stream 2nd-deriv-test 5)
+	       '(5 29 413 34205 41936285)))
+      ))
   )
