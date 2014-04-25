@@ -33,3 +33,22 @@
 	       '(5 29 413 34205 41936285)))
       ))
   )
+
+(describe "RLC circuits"
+  (it "takes a bunch of inputs and outputs a stream vC (voltage across the capacitor) and iL (current in the inductor)"
+    (lambda ()
+      (define vC0 10)
+      (define iL0 0)
+      (define RLC1 (RLC 1 1 0.2 0.1))
+
+      (define output-streams (RLC1 vC0 il0))
+
+      (assert (equal?
+	       (first-n-elements-of-stream (car output-streams) 5)
+	       '(0 1. 1.9 2.66 3.249)))
+
+      (assert (equal?
+	       (first-n-elements-of-stream (cdr output-streams) 5)
+	       '(10 10 9.5 8.55 7.220000000000001)))
+      ))
+  )

@@ -51,3 +51,22 @@
     (stream-map f y dy))
 
   y)
+
+; 3.80
+; ========================================================================
+(define (RLC R L C dt)
+  (define (voltage-and-current initial-voltage initial-current)
+    (define iL (integral (delay diL) initial-current dt))
+    (define vC (integral (delay dvC) initial-voltage dt))
+    (define dvC (scale-stream iL (- (/ 1 C))))
+    (define diL
+      (add-streams
+       (scale-stream iL (- (/ R L)))
+       (scale-stream vC (/ 1 L))))
+
+    (cons vC iL)
+    )
+
+
+  voltage-and-current
+  )
