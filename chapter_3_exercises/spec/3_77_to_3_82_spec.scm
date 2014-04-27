@@ -52,3 +52,27 @@
 	       '(10 10 9.5 8.55 7.220000000000001)))
       ))
   )
+
+(describe "rand"
+  (it "lets you generate random numbers from a stream of input requests"
+    (lambda ()
+      (define inputs (stream 'generate 'generate 'generate 'generate))
+
+      (define rands (rand inputs))
+
+      (pp      (first-n-elements-of-stream rands 3))
+
+      (assert (equal?
+	       (first-n-elements-of-stream rands 3)
+	       '(0 1 2)))
+      ))
+
+  (it "lets you reset the sequence"
+    (lambda ()
+      (define inputs (stream 'generate 'generate 'generate 'reset 'generate))
+      (define rands (rand inputs))
+      (assert (equal?
+	       (first-n-elements-of-stream rands 6)
+	       '(0 1 2 3 0 1)))
+    ))
+  )
