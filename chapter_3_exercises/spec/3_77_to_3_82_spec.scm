@@ -45,22 +45,21 @@
 
       (assert (equal?
 	       (first-n-elements-of-stream (car output-streams) 5)
-	       '(0 1. 1.9 2.66 3.249)))
+	       '(10 10 9.5 8.55 7.220000000000001)))
 
       (assert (equal?
 	       (first-n-elements-of-stream (cdr output-streams) 5)
-	       '(10 10 9.5 8.55 7.220000000000001)))
+	       '(0 1. 1.9 2.66 3.249)))
       ))
   )
 
 (describe "rand"
   (it "lets you generate random numbers from a stream of input requests"
     (lambda ()
-      (define inputs (stream 'generate 'generate 'generate 'generate))
+      (define generate (list 'generate 'throwawayvalue))
+      (define inputs (cons-stream generate inputs))
 
       (define rands (rand inputs))
-
-      (pp      (first-n-elements-of-stream rands 3))
 
       (assert (equal?
 	       (first-n-elements-of-stream rands 3)
@@ -69,10 +68,14 @@
 
   (it "lets you reset the sequence"
     (lambda ()
-      (define inputs (stream 'generate 'generate 'generate 'reset 'generate))
+      (define generate (list 'generate 'throwawayvalue))
+      (define reset (list 'reset 8))
+
+      (define inputs (stream generate generate reset generate generate generate))
       (define rands (rand inputs))
+
       (assert (equal?
-	       (first-n-elements-of-stream rands 6)
-	       '(0 1 2 3 0 1)))
+	       (first-n-elements-of-stream rands 5)
+	       '(0 1 2 8 9)))
     ))
   )

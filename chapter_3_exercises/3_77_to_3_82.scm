@@ -70,3 +70,26 @@
 
   voltage-and-current
   )
+
+; 3.81
+; ========================================================================
+(define random-init 0)
+(define (rand-update value)
+  (+ 1 value))
+(define (reset value)
+  value)
+
+(define (rand inputs)
+  (define (iter input-stream last-value)
+
+    (define (dispatch method value)
+      (cond ((eq? method 'generate) (rand-update last-value))
+	    ((eq? method 'reset) (reset value))))
+
+    (define next-value (apply dispatch (stream-car input-stream)))
+
+    (cons-stream
+     last-value
+     (iter (stream-cdr input-stream) next-value)))
+
+  (iter inputs random-init))
