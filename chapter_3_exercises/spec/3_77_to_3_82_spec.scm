@@ -79,3 +79,22 @@
 	       '(0 1 2 8 9)))
     ))
   )
+
+(describe "Monte Carlo integration"
+  (it "estimates the integral of a circle of radius 3 centered at (5,7)"
+    (lambda ()
+
+      (define (predicate x y)
+	(<=
+	 (+ (square (- x 5))
+	    (square (- y 7)))
+	 (square 3)))
+
+      (define estimates (estimate-integral predicate 2.0 8.0 4.0 10.0))
+
+      (assert (equal?
+	       (floor (stream-ref estimates 10000))
+	       28.0))
+      ))
+  )
+
