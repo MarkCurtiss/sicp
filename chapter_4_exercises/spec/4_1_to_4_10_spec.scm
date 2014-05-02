@@ -1,0 +1,21 @@
+(load "4_1_to_4_10.scm")
+
+(describe "List of values"
+  (it "evaluates from left to right"
+    (lambda ()
+      (define env '())
+
+      (assert
+       (equal?
+	(list-of-values-left-to-right '(1 2 () 3 4) user-initial-environment)
+	'(1 2 () 3 4)))
+      ))
+
+  (it "evaluates from right to left"
+    (lambda ()
+      (assert
+       (equal?
+	(list-of-values-right-to-left '(1 2 () 3 4) user-initial-environment)
+	'(((((() . 4) . 3)) . 2) . 1)))
+       ))
+  )
