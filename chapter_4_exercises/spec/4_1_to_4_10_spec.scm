@@ -19,3 +19,24 @@
 	'(((((() . 4) . 3)) . 2) . 1)))
        ))
   )
+
+(describe "eval"
+  (it "evaluates numbers and strings"
+    (lambda ()
+      (define env '())
+
+      (assert
+       (= 3
+	  (eval 3 env)))
+      ))
+
+  (it "evaluates if statements"
+    (lambda ()
+      (define env '())
+
+      (assert
+       (= 4
+	  (eval (list 'if 3 4 5) env)))
+      ))
+)
+
