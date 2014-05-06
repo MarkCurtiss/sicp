@@ -20,6 +20,27 @@
        ))
   )
 
+(describe "(louis-application?)"
+  (it "only considers expressions starting with (call) as procedure applications"
+    (lambda ()
+      (assert
+       (false?
+	(louis-application? '(factorial 3))))
+
+      (assert
+       (false?
+	(louis-application? '(+ 1 2))))
+
+      (assert
+       (eq? true
+	(louis-application? '(call factorial 3))))
+
+      (assert
+       (eq? true
+	(louis-application? '(call + 1 2))))
+      ))
+  )
+
 (describe "eval"
   (it "evaluates numbers and strings"
     (lambda ()
@@ -39,4 +60,3 @@
 	  (eval (list 'if 3 4 5) env)))
       ))
 )
-
