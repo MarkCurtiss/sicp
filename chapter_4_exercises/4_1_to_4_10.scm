@@ -73,3 +73,41 @@
 	((get 'eval (operator exp)) ((get 'eval (operator exp)) exp env))
 	(else
          (error "Unknown expression type -- EVAL" exp))))
+
+; 4.4
+; ========================================================================
+(define (install-and-package)
+  (define (and-predicate exp) (car exp))
+
+  (define (eval-and exp env)
+    (define (iter expression)
+      (cond ((null? expression) true)
+	    ((true? (eval (and-predicate expression) env)) (iter (cdr expression)))
+	    (else false)))
+
+    (iter (cdr exp))
+    )
+
+  (put 'eval 'and eval-and)
+
+  'and-package-installed)
+
+(install-and-package)
+
+(define (install-or-package)
+  (define (or-predicate exp) (car exp))
+
+  (define (eval-or exp env)
+    (define (iter expression)
+      (cond ((null? expression) false)
+	    ((true? (eval (or-predicate expression) env)) true)
+	    (else (iter (cdr expression)))))
+
+    (iter (cdr exp))
+    )
+
+  (put 'eval 'or eval-or)
+
+  'or-package-installed)
+
+(install-or-package)

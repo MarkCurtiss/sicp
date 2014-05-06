@@ -82,5 +82,29 @@
 	  (eval '() env)))
       ))
 
+  (it "evaluates (and) statements"
+    (lambda ()
+      (define env '())
+
+      (assert
+       (false?
+	(eval (list 'and false true) env)))
+
+      (assert
+       (true?
+	(eval (list 'and true 1) env)))
+      ))
+
+  (it "evalutes (or) statements"
+    (lambda ()
+      (define env '())
+
+      (assert
+       (false?
+	(eval (list 'or false false) env)))
+
+      (assert
+       (true?
+	(eval (list 'or false true 1) env)))
       ))
 )
