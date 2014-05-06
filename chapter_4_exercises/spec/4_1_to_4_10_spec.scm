@@ -57,6 +57,30 @@
 
       (assert
        (= 4
-	  (eval (list 'if 3 4 5) env)))
+	  (eval '(if 3 4 5) env)))
+      ))
+
+  (it "evaluates booleans"
+    (lambda ()
+      (define env '())
+
+      (assert
+       (false?
+	(eval false env)))
+
+      (assert
+       (true?
+	(eval true env)))
+      ))
+
+  (it "understands the empty list"
+    (lambda ()
+      (define env '())
+
+      (assert
+       (eq? '()
+	  (eval '() env)))
+      ))
+
       ))
 )

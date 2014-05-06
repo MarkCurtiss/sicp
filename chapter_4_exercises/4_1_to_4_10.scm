@@ -32,6 +32,8 @@
 
 ; 4.3
 ; ========================================================================
+(define (true? x)
+  (not (false? x)))
 (define (operator exp) (car exp))
 (define (operands exp) (cdr exp))
 (define (empty-list? exp)
@@ -40,6 +42,7 @@
   (cond ((number? exp) true)
         ((string? exp) true)
 	((empty-list? exp) true)
+	((boolean? exp) true)
         (else false)))
 
 (define put 2d-put!)
@@ -52,8 +55,6 @@
     (if (not (null? (cdddr exp)))
 	(cadddr exp)
 	'false))
-  (define (true? x)
-    (not (false? x)))
 
   (define (eval-if exp env)
     (if (true? (eval (if-predicate exp) env))
