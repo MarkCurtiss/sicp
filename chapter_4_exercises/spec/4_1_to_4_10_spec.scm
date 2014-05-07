@@ -97,7 +97,7 @@
 
   (it "evalutes (or) statements"
     (lambda ()
-      (define env '())
+      (define env user-initial-environment)
 
       (assert
        (false?
@@ -106,5 +106,19 @@
       (assert
        (true?
 	(eval (list 'or false true 1) env)))
+      ))
+
+  (it "handles standard (cond) syntax"
+    (lambda ()
+      (define env user-initial-environment)
+
+      (define exp (list 'cond '((> x 0) x)
+			'((= x 0) (display zero) 0)
+			'(else (- x))))
+
+      (assert
+       (equal?
+       (transform exp)
+       (list 'if '(> x 0) 'x '(if (= x 0) (begin (display zero) 0) (- x)))))
       ))
 )
