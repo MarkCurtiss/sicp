@@ -88,11 +88,11 @@
 
       (assert
        (false?
-	(eval (list 'and false true) env)))
+	(eval '(and #f #t) env)))
 
       (assert
        (true?
-	(eval (list 'and true 1) env)))
+	(eval '(and #t 1) env)))
       ))
 
   (it "evalutes (or) statements"
@@ -101,20 +101,20 @@
 
       (assert
        (false?
-	(eval (list 'or false false) env)))
+	(eval '(or #f #f) env)))
 
       (assert
        (true?
-	(eval (list 'or false true 1) env)))
+	(eval '(or #f #t 1) env)))
       ))
 
   (it "handles standard (cond) syntax"
     (lambda ()
       (define env user-initial-environment)
 
-      (define exp (list 'cond '((> x 0) x)
-			'((= x 0) (display zero) 0)
-			'(else (- x))))
+      (define exp '(cond ((> x 0) x)
+			((= x 0) (display zero) 0)
+			(else (- x))))
 
       (assert
        (equal?
