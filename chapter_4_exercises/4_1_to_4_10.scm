@@ -131,6 +131,10 @@
     (eq? (cond-predicate clause) 'else))
   (define (cond-predicate clause) (car clause))
   (define (cond-actions clause) (cdr clause))
+  (define (cond-test-recipient-clause? clause)
+    (eq? (car (cond-actions clause)) '=>))
+  (define (cond-recipient clause)
+    (caddr clause))
 
   (define (expand-clauses clauses)
     (if (null? clauses)
@@ -142,13 +146,17 @@
 		  (sequence->exp (cond-actions first))
 		  (error "ELSE clause isn't last -- COND->IF"
 			 clauses))
-	      (make-if (cond-predicate first)
-		       (sequence->exp (cond-actions first))
-		       (expand-clauses rest))))))
+	      (if (cond-test-recipient-clause? first)
+		  (let ((function (cond-recipient first)))
+		    (make-if (cond-predicate first)
+			     (cons function (list (cond-predicate first)))
+			     #f))
+		  (make-if (cond-predicate first)
+			   (sequence->exp (cond-actions first))
+			   (expand-clauses rest)))))))
 
   (define (cond->if exp)
     (expand-clauses (cond-clauses exp)))
-
 
   (put 'transform 'cond cond->if)
 

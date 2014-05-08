@@ -121,4 +121,22 @@
        (transform exp)
        (list 'if '(> x 0) 'x '(if (= x 0) (begin (display zero) 0) (- x)))))
       ))
-)
+
+  (it "handles (cond) (test => recipient) syntax"
+    (lambda ()
+      (define env user-initial-environment)
+
+      (define exp '(cond ((assoc 'b '((a 1) (b 2))) => cadr)
+			(else #f)))
+
+      (define transformed-exp '(if (assoc 'b '((a 1) (b 2)))
+				   (cadr (assoc 'b '((a 1) (b 2))))
+				   #f))
+
+      (assert
+       (equal?
+	(transform exp)
+	transformed-exp
+	))
+      ))
+  )
