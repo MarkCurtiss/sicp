@@ -170,3 +170,53 @@
 
 (define (transform exp)
   ((get 'transform (operator exp)) exp))
+
+; 4.6
+; ========================================================================
+(define (make-lambda parameters body)
+  (cons 'lambda (cons parameters body)))
+
+(define (install-let-package)
+  (define (let-expressions clause)
+    (cadr clause))
+  (define (let-body clause)
+    (cddr clause))
+  (define (let-variables clause)
+    (map car (let-expressions clause)))
+  (define (let-values clause)
+    (map cadr (let-expressions clause)))
+
+  (define (let->lambda exp)
+    (cons
+     (make-lambda
+      (let-variables exp)
+      (let-body exp))
+     (let-values exp)))
+
+  (put 'transform 'let let->lambda)
+  (put 'eval 'let (lambda (exp env)
+		    (eval
+		     (let->lambda exp)
+		     env)))
+
+  'let-package-installed)
+
+(install-let-package)
+
+(define (make-procedure parameters body env)
+  (list 'procedure parameters body env))
+
+(define (install-lambda-package)
+  (define (lambda-parameters exp) (cadr exp))
+  (define (lambda-body exp) (caddr exp))
+
+  (define (eval-lambda exp env)
+    (make-procedure (lambda-parameters exp)
+		    (lambda-body exp)
+		    env))
+
+  (put 'eval 'lambda eval-lambda)
+
+  'lambda-package-installed)
+
+(install-lambda-package)

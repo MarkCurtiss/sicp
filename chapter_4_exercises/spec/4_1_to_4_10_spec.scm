@@ -122,7 +122,7 @@
        (list 'if '(> x 0) 'x '(if (= x 0) (begin (display zero) 0) (- x)))))
       ))
 
-  (it "handles (cond) (test => recipient) syntax"
+  (it "transforms (cond) (test => recipient) into standard cond syntax"
     (lambda ()
       (define env user-initial-environment)
 
@@ -138,5 +138,35 @@
 	(transform exp)
 	transformed-exp
 	))
+      ))
+
+  (it "transforms (let) expressions into (lambdas)"
+    (lambda ()
+      (define env user-initial-environment)
+
+      (define exp '(let ((x 1) (y 2))
+		     (cons x y)))
+
+      (define transformed-exp '((lambda (x y)
+				  (cons x y))
+				1 2))
+      (assert
+       (equal?
+	(transform exp)
+	transformed-exp))
+      ))
+
+  (it "handles lambda expressions"
+    (lambda ()
+      (define env 'test-env)
+      (define exp '(lambda (x y)
+		     (cons x y)))
+
+      (define transformed-exp '(procedure (x y) (cons x y) test-env))
+
+      (assert
+       (equal?
+	(eval exp env)
+	transformed-exp))
       ))
   )
