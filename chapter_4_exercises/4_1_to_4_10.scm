@@ -220,3 +220,41 @@
   'lambda-package-installed)
 
 (install-lambda-package)
+
+; 4.7
+; ========================================================================
+(define (install-let*-package)
+  (define (let*-expressions clause)
+    (cadr clause))
+  (define (let*-body clause)
+    (caddr clause))
+  (define (make-let expression body)
+    (cons 'let (cons (list expression) (list body))))
+
+  (define (let*->nested-lets exp)
+    (define (make-nested-lets expressions body)
+      (if (null? expressions)
+	  body
+	  (make-let
+	   (car expressions)
+	   (make-nested-lets (cdr expressions) body))))
+
+    (make-nested-lets
+     (let*-expressions exp)
+     (let*-body exp)))
+
+  (put 'transform 'let* let*->nested-lets)
+
+  'let*-package-installed)
+
+(install-let*-package)
+
+;; You can't simply add (eval (let*->nested-lets exp) env) to the evaluator.
+;; It expands the lets* into nested lets but then fails to transform them all
+;; into (lambdas).  You wind up with an unusable statement. It looks like this:
+;; (
+;;  (lambda (x)
+;;    (let ((y (+ x 2)))
+;;      (let ((z (+ x y 5)))
+;;        (* x z))))
+;;  3)

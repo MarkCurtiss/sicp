@@ -110,8 +110,6 @@
 
   (it "handles standard (cond) syntax"
     (lambda ()
-      (define env user-initial-environment)
-
       (define exp '(cond ((> x 0) x)
 			((= x 0) (display zero) 0)
 			(else (- x))))
@@ -124,8 +122,6 @@
 
   (it "transforms (cond) (test => recipient) into standard cond syntax"
     (lambda ()
-      (define env user-initial-environment)
-
       (define exp '(cond ((assoc 'b '((a 1) (b 2))) => cadr)
 			(else #f)))
 
@@ -142,8 +138,6 @@
 
   (it "transforms (let) expressions into (lambdas)"
     (lambda ()
-      (define env user-initial-environment)
-
       (define exp '(let ((x 1) (y 2))
 		     (cons x y)))
 
@@ -167,6 +161,24 @@
       (assert
        (equal?
 	(eval exp env)
+	transformed-exp))
+      ))
+
+  (it "transforms let* into nested lets"
+    (lambda ()
+      (define exp '(let* ((x 3)
+			  (y (+ x 2))
+			  (z (+ x y 5)))
+		     (* x z)))
+
+      (define transformed-exp '(let ((x 3))
+				 (let ((y (+ x 2)))
+				   (let ((z (+ x y 5)))
+				     (* x z)))))
+
+      (assert
+       (equal?
+	(transform exp)
 	transformed-exp))
       ))
   )
