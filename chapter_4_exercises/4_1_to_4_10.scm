@@ -186,17 +186,17 @@
   (define (let-values clause)
     (map cadr (let-expressions clause)))
 
-  (define (let->lambda exp)
+  (define (let->combination exp)
     (cons
      (make-lambda
       (let-variables exp)
       (let-body exp))
      (let-values exp)))
 
-  (put 'transform 'let let->lambda)
+  (put 'transform 'let let->combination)
   (put 'eval 'let (lambda (exp env)
 		    (eval
-		     (let->lambda exp)
+		     (let->combination exp)
 		     env)))
 
   'let-package-installed)
@@ -258,3 +258,65 @@
 ;;      (let ((z (+ x y 5)))
 ;;        (* x z))))
 ;;  3)
+
+; 4.8
+; ========================================================================
+(define (make-function-call function-name variables)
+  (list function-name variables))
+
+(define (make-define variable value)
+  (if (pair? variable)
+      (let ((function-name (car variable))
+	    (variables (cdr variable))
+	    (body value))
+	(list 'define (cons function-name variables) body))
+      (list 'define variable value)))
+
+(define (install-let-package)
+  (define (let-expressions clause)
+    (cadr clause))
+  (define (let-body clause)
+    (cddr clause))
+  (define (let-variables clause)
+    (map car (let-expressions clause)))
+  (define (let-values clause)
+    (map cadr (let-expressions clause)))
+
+  (define (named-let? clause)
+    (symbol? (let-expressions clause)))
+  (define (named-let-expressions clause)
+    (caddr clause))
+  (define (named-let-values clause)
+    (map cadr (named-let-expressions clause)))
+  (define (named-let-variables clause)
+    (map car (named-let-expressions clause)))
+  (define (named-let-body clause)
+    (cadddr clause))
+  (define (named-let-name clause)
+    (cadr clause))
+
+  (define (let->combination exp)
+    (if (named-let? exp)
+	(sequence->exp
+	 (list
+	  (make-define
+	   (cons (named-let-name exp) (named-let-variables exp))
+	   (named-let-body exp))
+	  (make-function-call
+	   (named-let-name exp)
+	   (named-let-values exp))))
+	(cons
+	 (make-lambda
+	  (let-variables exp)
+	  (let-body exp))
+	 (let-values exp))))
+
+  (put 'transform 'let let->combination)
+  (put 'eval 'let (lambda (exp env)
+		    (eval
+		     (let->combination exp)
+		     env)))
+
+  'let-package-installed)
+
+(install-let-package)

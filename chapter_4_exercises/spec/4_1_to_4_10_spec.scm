@@ -181,4 +181,43 @@
 	(transform exp)
 	transformed-exp))
       ))
+
+  (it "lets you create variable definitions"
+    (lambda ()
+      (assert
+       (equal?
+	(make-define 'x 3)
+	'(define x 3)))
+      ))
+
+  (it "lets you create function definitions"
+    (lambda ()
+      (assert
+       (equal?
+	(make-define '(owls the lion) '(pp "ate its trainer at the circus"))
+	'(define (owls the lion)
+	   (pp "ate its trainer at the circus"))))
+      ))
+
+  (it "transforms named (let)s"
+    (lambda ()
+      (define exp '(let fib-iter ((a 1)
+				  (b 0)
+				  (count n))
+		     (if (= count 0)
+			 b
+			 (fib-iter (+ a b) a (- count 1)))))
+
+      (define transformed-exp '(begin
+				 (define (fib-iter a b count)
+				   (if (= count 0)
+				       b
+				       (fib-iter (+ a b) a (- count 1))))
+				 (fib-iter (1 0 n))))
+
+      (assert
+       (equal?
+	(transform exp)
+	transformed-exp))
+      ))
   )
