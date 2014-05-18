@@ -41,7 +41,7 @@
       ))
   )
 
-(describe "eval"
+(describe "(eval)"
   (it "evaluates numbers and strings"
     (lambda ()
       (define env '())
@@ -88,11 +88,11 @@
 
       (assert
        (false?
-	(eval '(and #f #t) env)))
+	(eval '(&& #f #t) env)))
 
       (assert
        (true?
-	(eval '(and #t 1) env)))
+	(eval '(&& #t 1) env)))
       ))
 
   (it "evalutes (or) statements"
@@ -101,11 +101,11 @@
 
       (assert
        (false?
-	(eval '(or #f #f) env)))
+	(eval '(|| #f #f) env)))
 
       (assert
        (true?
-	(eval '(or #f #t 1) env)))
+	(eval '(|| #f #t 1) env)))
       ))
 
   (it "handles standard (cond) syntax"
