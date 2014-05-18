@@ -261,8 +261,10 @@
 
 ; 4.8
 ; ========================================================================
-(define (make-function-call function-name variables)
-  (list function-name variables))
+(define (make-function-call function-name . variables)
+  (if (null? variables)
+      (list function-name)
+      (apply list function-name variables)))
 
 (define (make-define variable value)
   (if (pair? variable)
@@ -320,3 +322,25 @@
   'let-package-installed)
 
 (install-let-package)
+
+; 4.9
+; ========================================================================
+(define (install-while-package)
+  (define (while-conditional while-clause)
+    (cadr while-clause))
+  (define (while-expressions while-clause)
+    (cddr while-clause))
+
+  (define (while->iter exp)
+    (make-define
+     '(iter)
+     (make-if
+      (while-conditional exp)
+      (sequence->exp (append (while-expressions exp) (list (make-function-call 'iter))))
+      #f)))
+
+  (put 'transform 'while while->iter)
+
+  'while-package-installed)
+
+(install-while-package)

@@ -220,4 +220,25 @@
 	(transform exp)
 	transformed-exp))
       ))
+
+  (it "has other looping constructs like (while)"
+    (lambda ()
+      (define exp '(while (< lines-in-file 100)
+		     (read-next-line-in-file)
+		     (+ lines-in-file 1)
+		     ))
+
+      (define transformed-exp '(define (iter)
+				 (if (< lines-in-file 100)
+				     (begin
+				       (read-next-line-in-file)
+				       (+ lines-in-file 1)
+				       (iter))
+				     #f)))
+
+      (assert
+       (equal?
+	(transform exp)
+	transformed-exp))
+      ))
   )
