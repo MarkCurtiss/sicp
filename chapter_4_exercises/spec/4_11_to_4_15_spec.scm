@@ -68,7 +68,7 @@
 	(lookup-variable-value 'oceansize env)
 	"everyone into position"))
        ))
-  
+
   (it "can define a new binding for a variable in an environment"
     (lambda ()
       (define env (extend-environment '(oceansize) '("superimposer") the-empty-environment))
@@ -79,5 +79,16 @@
        (equal?
 	(lookup-variable-value 'owls env)
 	"the lion"))
+      ))
+
+  (it "can remove variable bindings from the specified environment"
+    (lambda ()
+      (define env (extend-environment '(oceansize) '("superimposer") the-empty-environment))
+      (define child-env (extend-environment '(oceansize owls) '("long forgotten", "the lion") env))
+
+      (make-unbound! 'oceansize child-env)
+
+      (assert
+       (null? (find-variable-in-environment 'oceansize child-env)))
       ))
 )

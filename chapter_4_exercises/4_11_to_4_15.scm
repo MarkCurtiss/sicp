@@ -14,6 +14,7 @@
 
 ; 4.12
 ; ========================================================================
+(define (defined? x) (not (null? x)))
 (define (enclosing-environment env) (cdr env))
 (define (first-frame env) (car env))
 (define the-empty-environment '())
@@ -35,6 +36,8 @@
   (cdr binding))
 (define (set-binding-values! binding new-values)
   (set-cdr! binding new-values))
+(define (erase-binding! binding)
+  (set-car! binding '()))
 
 (define (find-variable-in-environment var env)
   (define (env-loop env)
@@ -52,16 +55,34 @@
   (env-loop env))
 
 (define (lookup-variable-value var env)
-  (let ((binding (find-variable-in-environment var env)))
-    (binding-values binding)))
+  (define binding (find-variable-in-environment var env))
+
+  (if (defined? binding)
+      (binding-values binding)))
 
 (define (set-variable-value! var val env)
-  (let ((binding (find-variable-in-environment var env)))
-    (set-binding-values! binding val)))
+  (define binding (find-variable-in-environment var env))
+
+  (if (defined? binding)
+      (set-binding-values! binding val)))
 
 (define (define-variable! var val env)
   (define binding (find-variable-in-environment var env))
 
-  (if (null? binding)
-      (add-binding-to-frame! var val (first-frame env))
-      (set-binding-values! binding val)))
+  (if (defined? binding)
+      (set-binding-values! binding val)
+      (add-binding-to-frame! var val (first-frame env))))
+
+; 4.13
+; ========================================================================
+;; I'm choosing to remove the bindings from all environments at once.
+;; It is a rude implementation choice.  I am imagining a hapless
+;; developer unbinding a variable in one environment only to find (hours
+;; later) that it was actually removed from the entire universe at once!
+(define (make-unbound! var env)
+  (define binding (find-variable-in-environment var env))
+
+  (if (defined? binding)
+      (begin
+	(erase-binding! binding)
+	(make-unbound! var (enclosing-environment env)))))
