@@ -86,3 +86,16 @@
       (begin
 	(erase-binding! binding)
 	(make-unbound! var (enclosing-environment env)))))
+
+; 4.14
+; ========================================================================
+;; (map) is needed for defining primitive procedures in the metacircular
+;; evaluator's enviroment.
+
+; 4.15
+; ========================================================================
+;; If (try try) runs forever, it means that (halts?) was not able to
+;; determine that (try try) would run forever.
+;; If (try try) halts, it means that (halts?) errantly terminated the execution
+;; and broke the recursive nature of (try try).
+;; Neither can be true, so there's no such thing as (halts?).
