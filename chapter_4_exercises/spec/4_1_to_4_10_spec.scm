@@ -199,6 +199,29 @@
 	   (pp "ate its trainer at the circus"))))
       ))
 
+  (it "lets you create function applications with no variables"
+    (lambda ()
+      (assert
+       (equal?
+	(make-function-call 'iter)
+	'(iter)
+	))
+      ))
+
+  (it "lets you create function applications with variables"
+    (lambda ()
+      (assert
+       (equal?
+	(make-function-call 'square 3)
+	'(square 3)
+	))
+
+      (assert
+       (equal?
+	(make-function-call 'map '+ '(1 2 3 4))
+	'(map + (1 2 3 4))))
+      ))
+
   (it "transforms named (let)s"
     (lambda ()
       (define exp '(let fib-iter ((a 1)
@@ -213,7 +236,7 @@
 				   (if (= count 0)
 				       b
 				       (fib-iter (+ a b) a (- count 1))))
-				 (fib-iter (1 0 n))))
+				 (fib-iter 1 0 n)))
 
       (assert
        (equal?

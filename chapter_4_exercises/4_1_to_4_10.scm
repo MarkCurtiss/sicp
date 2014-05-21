@@ -306,7 +306,7 @@
 	  (make-define
 	   (cons (named-let-name exp) (named-let-variables exp))
 	   (named-let-body exp))
-	  (make-function-call
+	  (apply make-function-call
 	   (named-let-name exp)
 	   (named-let-values exp))))
 	(cons
