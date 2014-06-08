@@ -50,3 +50,25 @@
 ; expression.
 (define (make-procedure parameters body env)
   (list 'procedure parameters (scan-out-defines body) env))
+
+; 4.17
+; ========================================================================
+; Maybe later.
+
+; 4.18
+; ========================================================================
+; If the defines are scanned out using our implementation from 4.16, the
+; solve function will work as usual.
+
+; If the defines are scanned out using the crazy new way where they get set!
+; in a nested let block, it won't work. In the innermost block where a and
+; b get set, they will still be referencing a frame in which y and dy
+; have no definitions at all. Like so:
+;; (define (solve f y0 dt)
+;;   (let ((y '*unassigned*) (dy '*unassigned*))
+;;     (let ((a (integral (delay dy) y0 dt))
+;; 	  (b (stream-map f y)))
+;;       (set! y a)
+;;       (set! dy b))
+;;     y))
+
