@@ -67,8 +67,69 @@
 ;; (define (solve f y0 dt)
 ;;   (let ((y '*unassigned*) (dy '*unassigned*))
 ;;     (let ((a (integral (delay dy) y0 dt))
-;; 	  (b (stream-map f y)))
+;; 	     (b (stream-map f y)))
 ;;       (set! y a)
 ;;       (set! dy b))
 ;;     y))
 
+; 4.19
+; ========================================================================
+; I argue for Ben's way.  It is the easiest to reason about as the developer.
+; If I were to write this convoluted function, I'd expect it to work the way
+; he describes.
+;
+; We could implement it Eva's way if we used the version of (scan-out-defines)
+; from 4.18.  Then the frame that (+ a b) is evaluated in will have a set! to 5
+; and b set! to 5 + 10 and Eva will get her precious 20.
+
+; 4.20
+; ========================================================================
+; a.
+(define (install-letrec-package)
+  (define (letrec-expressions clause)
+    (cadr clause))
+  (define (letrec-body clause)
+    (caddr clause))
+  (define (letrec-variables clause)
+    (map car (letrec-expressions clause)))
+  (define (letrec-values clause)
+    (map cadr (letrec-expressions clause)))
+
+  (define (make-variable-unassignments exp)
+    (define (unassign-variable variable)
+      (list variable ''*unassigned*))
+
+    (map unassign-variable (letrec-variables exp)))
+
+  (define (make-variable-assignments exp)
+    (define (assign-variable variable value)
+      (list (symbol-append 'inner- variable)
+	    value))
+
+    (list 'let
+	  (map assign-variable (letrec-variables exp) (letrec-values exp))))
+
+  (define (make-sets exp)
+    (define (set-variable inner-variable outer-variable)
+      (list 'set! outer-variable inner-variable))
+
+    (map set-variable
+	 (map (lambda (var) (symbol-append 'inner- var)) (letrec-variables exp))
+	 (letrec-variables exp)))
+
+  (define (letrec->let exp)
+    (list 'let
+	  (make-variable-unassignments exp)
+	  (append (make-variable-assignments exp) (make-sets exp))
+	  (letrec-body exp)
+	  )
+    )
+
+  (put 'transform 'letrec letrec->let)
+
+  'letrec-package-installed)
+
+(install-letrec-package)
+
+; b.
+; No seriously I'm not going to draw any environment diagrams right now.

@@ -32,12 +32,30 @@
       ))
   )
 
+(describe "letrec"
+  (it "translates into nested lets that allow mutual recursion"
+    (lambda ()
+      (define exp '(letrec ((fact
+			      (lambda (n)
+				(if (= n 1)
+				    1
+				    (* n (fact (- n 1)))))))
+		     (fact 10)))
 
+      (define transformed-exp '(let ((fact '*unassigned*))
+				 (let ((inner-fact (lambda (n)
+					    (if (= n 1)
+						1
+						(* n (fact (- n 1)))))))
+				   (set! fact inner-fact))
+				 (fact 10)))
 
-
-
-
-
+      (assert
+       (equal?
+	(transform exp)
+	transformed-exp))
+      ))
+  )
 
 
 
