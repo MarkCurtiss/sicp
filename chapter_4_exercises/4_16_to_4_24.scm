@@ -133,3 +133,17 @@
 
 ; b.
 ; No seriously I'm not going to draw any environment diagrams right now.
+
+; 4.21
+; ========================================================================
+; a. see tests
+; Man that is really trippy.  Eventually I realized that if you call two
+; consecutive lambdas, the second lambda is passed as an argument to the
+; first.
+; 1 ]=> ((lambda (x) (pp x)) (lambda (y) (pp "this is lambda 2")))
+; (lambda (y)
+;   (pp "this is lambda 2"))
+; So (fact fact n) calls the fibonacci function and passes in the fibonacci
+; function as an argument so it'll actually have a way to reference it.
+
+; b. see tests

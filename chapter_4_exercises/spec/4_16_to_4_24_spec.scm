@@ -57,5 +57,56 @@
       ))
   )
 
+(describe "define-less recursion"
+  (it "computes factorial without defining functions"
+      (lambda ()
+	(assert (=
+		 (
+		   (lambda (n)
+		    (
+		     (lambda (fact)
+		       (fact fact n))
+		     (lambda (ft k)
+		       (if (= k 1)
+			   1
+			   (* k (ft ft (- k 1)))))
+		     )
+		    )
+		  10)
+		 (* 10 9 8 7 6 5 4 3 2 1)
+		 ))
+	))
+
+  (it "computes fibonacci without defining functions"
+    (lambda ()
+      (assert (=
+	       ((lambda (n)
+		  (
+		   (lambda (fib)
+		     (fib fib n))
+		   (lambda (ft k)
+		     (cond ((= k 0) 0)
+			   ((or (= k 1) (= k 2)) 1)
+			   (else (+ (ft ft (- k 1)) (ft ft (- k 2))))))
+		   )
+		  )
+		8)
+	       21)
+	      ))
+    )
+
+  (it "determines odd/even without defining functions"
+    (lambda ()
+      (define (f x)
+	((lambda (even? odd?)
+	   (even? even? odd? x))
+	 (lambda (ev? od? n)
+	   (if (= n 0) true (od? ev? od? (- n 1))))
+	 (lambda (ev? od? n)
+	   (if (= n 0) false (ev? ev? od? (- n 1))))))
+
+      (assert (eq? (f 7) #f))
+    ))
+  )
 
 
