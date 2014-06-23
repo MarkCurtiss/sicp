@@ -210,7 +210,7 @@
 
 (define (install-lambda-package)
   (define (lambda-parameters exp) (cadr exp))
-  (define (lambda-body exp) (caddr exp))
+  (define (lambda-body exp) (caddr exp)) ; Wow this really should be cddr.  Changing it here breaks every other function from the book that operates on lambdas.  Getting the list semantics right between every function seems like an annoying side effect of everything in Scheme being a list.
 
   (define (eval-lambda exp env)
     (make-procedure (lambda-parameters exp)

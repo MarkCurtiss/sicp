@@ -147,3 +147,78 @@
 ; function as an argument so it'll actually have a way to reference it.
 
 ; b. see tests
+
+; 4.22
+; ========================================================================
+; First of all, I'd like to point out the definition of (eval) they give
+; us to use in this chapter contradicts the version they had us implement
+; in 4.3!  Which one is correct?? This is why I am reluctant to fully
+; implement any of the exercises they give us for fear it'll have to be
+; rewritten later.
+(define (analyze-self-evaluating exp)
+  (lambda (env) exp))
+
+(define (analyze-variable exp)
+  (lambda (env) (lookup-variable-value exp env)))
+
+(define (eval exp env)
+  ((analyze exp) env))
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp) (analyze-self-evaluating exp))
+	((variable? exp) (analyze-variable exp))
+	((get 'analyze (operator exp)) ((get 'analyze (operator exp)) exp))
+	(else
+	 (error "Unknown expression type -- ANALYZE" exp))))
+
+(define (install-let-package)
+  (define (let-expressions clause)
+    (cadr clause))
+  (define (let-body clause)
+    (cddr clause))
+  (define (let-variables clause)
+    (map car (let-expressions clause)))
+  (define (let-values clause)
+    (map cadr (let-expressions clause)))
+
+  (define (let->combination exp)
+    (cons
+     (make-lambda
+      (let-variables exp)
+      (let-body exp))
+     (let-values exp)))
+
+  (define (analyze-let exp)
+    (lambda (env)
+      (
+       (analyze-lambda
+	(make-lambda
+	 (let-variables exp)
+	 (let-body exp)))
+       (let-variables exp)
+       (let-body exp))
+      ))
+
+  (put 'transform 'let let->combination)
+  (put 'analyze 'let analyze-let)
+
+  (put 'eval 'let (lambda (exp env)
+		    (eval
+		     (let->combination exp)
+		     env)))
+
+  'let-package-installed)
+
+(install-let-package)
+
+; 4.23
+; ========================================================================
+; Eva's version analyzes every expression, then chains them together in a
+; giant lambda.
+; Alyssa's version analyzes every expression and leaves you a lambda that
+; will call them all in a sequence.
+; Her version doesn't do the work of chaining the lambdas together until
+; execution time.
+; For a statement with one argument they will do the same amount of work.
+; For a statement with two arguments Eva's version does more work at
+; analysis time.
