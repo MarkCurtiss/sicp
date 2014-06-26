@@ -222,3 +222,57 @@
 ; For a statement with one argument they will do the same amount of work.
 ; For a statement with two arguments Eva's version does more work at
 ; analysis time.
+
+; 4.24
+; ========================================================================
+(define (time-statement statement env num-executions)
+  (define (eval-statement-n-times statement env)
+    (define (repeat current)
+      (if (< current num-executions)
+	  (begin
+	    (eval statement env)
+	    (repeat (+ current 1)))))
+    (repeat 0))
+
+  (define start-time (real-time-clock))
+  (pp (list "Start time: " start-time))
+  (eval-statement-n-times statement env)
+  (define end-time (real-time-clock))
+  (pp (list "End time: " end-time))
+  (pp (list "Time elapsed: " (- end-time start-time))))
+
+(define factorial-exp '(define (factorial n)
+			 (if (= n 1)
+			     1
+			     (* (factorial (- n 1)) n))))
+
+(define (test-unanalyzed)
+  (load "book_code/ch4-mceval.scm")
+  (define the-global-environment (setup-environment))
+
+  (time-statement factorial-exp the-global-environment 100000))
+
+(define (test-analyzed)
+  (load "book_code/ch4-analyzingmceval.scm")
+  (define the-global-environment (setup-environment))
+
+  (time-statement factorial-exp the-global-environment 100000))
+
+; Since this isn't actually executing (factorial) we don't see any speed
+; improvement from the analyzed version.
+
+;; 1 ]=> (test-unanalyzed)
+;; ;Loading "book_code/ch4-mceval.scm"... done
+;; ("Start time: " 35074)
+;; ("End time: " 36520)
+;; ("Time elapsed: " 1446)
+;; ;Unspecified return value
+
+;; 1 ]=> (test-analyzed)
+;; ;Loading "book_code/ch4-analyzingmceval.scm"...
+;; ;  Loading "book_code/ch4-mceval.scm"... done
+;; ;... done
+;; ("Start time: " 17550)
+;; ("End time: " 24420)
+;; ("Time elapsed: " 6870)
+;; ;Unspecified return value
