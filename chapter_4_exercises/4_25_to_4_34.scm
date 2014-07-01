@@ -20,6 +20,9 @@
 
 ;; Also I think it is funny that this book is promoting developer arguments.
 
+(define put 2d-put!)
+(define get 2d-get)
+
 (define (install-unless-package)
   (define (unless-predicate exp) (cadr exp))
   (define (unless-consequent exp) (caddr exp))
@@ -35,3 +38,39 @@
   'unless-package-installed)
 
 (install-unless-package)
+
+; 4.27
+; ========================================================================
+(load "book_code/ch4-leval.scm")
+
+;; (define the-global-environment (setup-environment))
+;; (driver-loop)
+
+;; (define count 0)
+;; (define (id x)
+;;   (set! count (+ count 1))
+;;   x)
+
+;; ;;; L-Eval input:
+;; (define w (id (id 10)))
+;; ;;; L-Eval value:
+;; ok
+
+;; ;;; L-Eval input:
+;; count
+;; ;;; L-Eval value:
+;; 1
+;; We evaluated the first application of (id) when we (define)'d w so our count
+;; is now (0+1 ==) 1.
+
+;; ;;; L-Eval input:
+;; w
+;; ;;; L-Eval value:
+;; 10
+;; This applies (id) again which has a cool side effect. . .
+
+;; ;;; L-Eval input:
+;; count
+;; ;;; L-Eval value:
+;; 2
+;; You see that now count has been incremented a second time.  It is 2.
