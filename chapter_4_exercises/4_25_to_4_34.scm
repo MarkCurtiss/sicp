@@ -74,3 +74,60 @@
 ;; ;;; L-Eval value:
 ;; 2
 ;; You see that now count has been incremented a second time.  It is 2.
+
+; 4.28
+; ========================================================================
+;; If you had an operator that had been thunk'ed, you would need to force its
+;; value before you could dispatch on its type.
+
+; 4.29
+; ========================================================================
+;; (factorial) is the classic example as you'll be recomputing (factorial)
+;; invocations over and over again.
+
+(define the-global-environment (setup-environment))
+(driver-loop)
+
+(define count 0)
+(define (id x)
+  (set! count (+ count 1))
+  x)
+(define (square x)
+  (* x x))
+
+;; With memoization.
+;;; L-Eval input:
+;; (define (square x)
+;;   (* x x))
+;; ;;; L-Eval value:
+;; ok
+;; ;;; L-Eval input:
+;; (square (id 10))
+;; ;;; L-Eval value:
+;; 100
+;; ;;; L-Eval input:
+;; count
+;; ;;; L-Eval value:
+;; 1
+
+;; Without memoization.
+;; (load "book_code/ch4-nonmemoizing-leval.scm")
+;; (define the-global-environment (setup-environment))
+;; (driver-loop)
+;; (define count 0)
+;; (define (id x)
+;;   (set! count (+ count 1))
+;;   x)
+;; (define (square x)
+;;   (* x x))
+;; ;;; L-Eval input:
+;; (square (id 10))
+
+;; ;;; L-Eval value:
+;; 100
+
+;; ;;; L-Eval input:
+;; count
+
+;; ;;; L-Eval value:
+;; 2
