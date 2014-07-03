@@ -131,3 +131,119 @@
 
 ;; ;;; L-Eval value:
 ;; 2
+
+; 4.30
+; ========================================================================
+; a.
+; Every step of (for-each) is an (application?) which means it'll get
+; get passed through to (apply).  (apply) forces the actual value of its
+; arguments.  Thus every element in the list gets Ben's lambda applied to it.
+
+; b.
+; With the original (eval-sequence):
+;; (load "book_code/ch4-leval.scm")
+;; (define the-global-environment (setup-environment))
+;; (driver-loop)
+
+;; (define (p1 x)
+;;   (set! x (cons x '(2)))
+;;   x)
+
+;; (define (p2 x)
+;;   (define (p e)
+;;     e
+;;     x)
+;;   (p (set! x (cons x '(2)))))
+
+;; (p1 1)
+;; (p2 1)
+
+;; ;;; L-Eval input:
+;; (define (p1 x)
+;;   (set! x (cons x '(2)))
+;;   x)
+
+;; ;;; L-Eval value:
+;; ok
+
+;; ;;; L-Eval input:
+;; (define (p2 x)
+;;   (define (p e)
+;;     e
+;;     x)
+;;   (p (set! x (cons x '(2)))))
+
+;; ;;; L-Eval value:
+;; ok
+
+;; ;;; L-Eval input:
+;; (p1 1)
+
+;; ;;; L-Eval value:
+;; (1 2)
+
+;; ;;; L-Eval input:
+;; (p2 1)
+
+;; ;;; L-Eval value:
+;; 1
+
+; With Cy D. Fect's (eval-sequence):
+;; (load "book_code/ch4-cydeffect-leval.scm")
+;; (define the-global-environment (setup-environment))
+;; (driver-loop)
+
+;; (define (p1 x)
+;;   (set! x (cons x '(2)))
+;;   x)
+
+;; (define (p2 x)
+;;   (define (p e)
+;;     e
+;;     x)
+;;   (p (set! x (cons x '(2)))))
+
+;; (p1 1)
+;; (p2 1)
+
+;; ;;; L-Eval input:
+;; (define (p1 x)
+;;   (set! x (cons x '(2)))
+;;   x)
+
+;; ;;; L-Eval value:
+;; ok
+
+;; ;;; L-Eval input:
+;; (define (p2 x)
+;;   (define (p e)
+;;     e
+;;     x)
+;;   (p (set! x (cons x '(2)))))
+
+;; ;;; L-Eval value:
+;; ok
+
+;; ;;; L-Eval input:
+;; (p1 1)
+
+;; ;;; L-Eval value:
+;; (1 2)
+
+;; ;;; L-Eval input:
+;; (p2 1)
+
+;; ;;; L-Eval value:
+;; (1 2)
+
+;; ;;; L-Eval input:
+
+; c.
+; There's no difference between the (actual-value) and the (apply)
+; of Ben's function because (apply) calls (actual-value).
+
+; d.
+; I prefer the approach in the text.  It is more consistently strange.
+; Cy D. Effect's approach suddenly works differently than the rest of the
+; language and I dislike the thought of programming in a language where
+; sequences have special behavior.
