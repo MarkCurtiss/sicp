@@ -247,3 +247,30 @@
 ; Cy D. Effect's approach suddenly works differently than the rest of the
 ; language and I dislike the thought of programming in a language where
 ; sequences have special behavior.
+
+; 4.31
+; ========================================================================
+;; My code is in book_code/upwards-compatible-leval.scm
+;; (define the-global-environment (setup-environment))
+;; (driver-loop)
+;; (define (owls a (b lazy) c (d lazy-memo))
+;;   (+ a b c d))
+;; (owls 3 4 5 6)
+
+;; I think the code I have should work.  But for some reason it doesn't know
+;; about (display) or (+) or (pp) or any other function I try to call inside
+;; of (owls).  Trying to debug why inside of a scheme sub-interpreter is really
+;; difficult.
+
+; 4.32
+; ========================================================================
+;; (define (cons x y)
+;;   (lambda (m) (m x y)))
+;; (define (car z)
+;;   (z (lambda (p q) p)))
+;; (define (cdr z)
+;;   (z (lambda (p q) q)))
+
+; This formulation of (cons) lets us put infinite streams in both the car
+; and cdr of a cons.  So you could make a stream where the car was just ones
+; and the cdr was integers.
