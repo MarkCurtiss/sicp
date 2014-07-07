@@ -274,3 +274,63 @@
 ; This formulation of (cons) lets us put infinite streams in both the car
 ; and cdr of a cons.  So you could make a stream where the car was just ones
 ; and the cdr was integers.
+
+; 4.33
+; ========================================================================
+;; (define (quoted? exp)
+;;   (eq?
+;;    'quote
+;;    (list-ref 0)))
+
+;; (define (text-of-quotation exp)
+;;   (cons (caadr exp)
+;; 	(cdadr exp)))
+
+; This appears to have worked:
+;; 1 ]=> (driver-loop)
+
+;; ;;; M-Eval input:
+;; (define (cons x y)
+;;   (lambda (m) (m x y)))
+
+;; ;;; M-Eval value:
+;; ok
+
+;; ;;; M-Eval input:
+;; (define (car z)
+;;   (z (lambda (p q) p)))
+
+;; ;;; M-Eval value:
+;; ok
+
+;; ;;; M-Eval input:
+;; (define (cdr z)
+;;   (z (lambda (p q) q)))
+
+;; ;;; M-Eval value:
+;; ok
+
+;; ;;; M-Eval input:
+;; (define (quoted? exp)
+;;   (eq?
+;;    'quote
+;;    (list-ref 0)))
+
+;; ;;; M-Eval value:
+;; ok
+
+;; ;;; M-Eval input:
+;; (define (text-of-quotation exp)
+;;   (cons (caadr exp)
+;; 	(cdadr exp)))
+
+;; ;;; M-Eval value:
+;; ok
+
+;; ;;; M-Eval input:
+;; '(1 2 3)
+
+;; ;;; M-Eval value:
+;; (1 2 3)
+
+;; ;;; M-Eval input:
