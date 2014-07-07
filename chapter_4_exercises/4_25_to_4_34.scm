@@ -334,3 +334,54 @@
 ;; (1 2 3)
 
 ;; ;;; M-Eval input:
+
+; 4.34
+; ========================================================================
+;; This code should do it but when I reload (eval) inside the driver loop
+;; it doesn't recognize my changes to the code.  Sick of this.
+;; (load "book_code/ch4-mceval.scm")
+
+;; (define the-global-environment (setup-environment))
+;; (driver-loop)
+
+;; (define (cons x y)
+;;   (lambda (m) (m x y)))
+;; (define (car z)
+;;   (z (lambda (p q) p)))
+;; (define (cdr z)
+;;   (z (lambda (p q) q)))
+
+;; (define (cons? exp)
+;;   (procedure? exp))
+
+;; (define (eval exp env)
+;;   (cond ((self-evaluating? exp) exp)
+;;         ((variable? exp) (lookup-variable-value exp env))
+;;         ((quoted? exp) (text-of-quotation exp))
+;;         ((assignment? exp) (eval-assignment exp env))
+;;         ((definition? exp) (eval-definition exp env))
+;;         ((if? exp) (eval-if exp env))
+;;         ((lambda? exp)
+;;          (make-procedure (lambda-parameters exp)
+;;                          (lambda-body exp)
+;;                          env))
+;;         ((begin? exp)
+;;          (eval-sequence (begin-actions exp) env))
+;;         ((cond? exp) (eval (cond->if exp) env))
+;; 	((cons? exp) (print-first-3-elements exp env))
+;;         ((application? exp)
+;;          (apply (eval (operator exp) env)
+;;                 (list-of-values (operands exp) env)))
+;;         (else
+;;          (error "Unknown expression type -- EVAL" exp))))
+
+;; (define (print-first-3-elements exp)
+;;   (define (iter n element)
+;;     (cond ((null? element) '())
+;; 	  ((= n 3) '())
+;; 	  (else
+;; 	   (begin
+;; 	     (display (car element))
+;; 	     (iter (+ n 1) (cdr element))))))
+
+;;   (iter 0 exp))
