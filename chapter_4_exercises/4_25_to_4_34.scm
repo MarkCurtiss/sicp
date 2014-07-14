@@ -82,7 +82,7 @@
 
 ; 4.29
 ; ========================================================================
-;; (factorial) is the classic example as you'll be recomputing (factorial)
+;; (fibonacci) is the classic example as you'll be recomputing (fibonacci)
 ;; invocations over and over again.
 
 (define the-global-environment (setup-environment))
