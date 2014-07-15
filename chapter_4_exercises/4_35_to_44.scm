@@ -89,3 +89,9 @@
 
 ;; ;;; Amb-Eval value:
 ;; (5 12 13)
+
+; 4.37
+; ========================================================================
+;; Yes Ben's implementation should be more efficient.  He only has to explore
+;; at max (high - low)^2 possibilities while the previous implementation
+;; had to explore (high - low)^3 possibilities.
