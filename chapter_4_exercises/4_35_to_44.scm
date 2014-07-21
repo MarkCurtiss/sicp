@@ -249,3 +249,133 @@
 ;; ;; However on my comically fast computer this doesn't seem to run any
 ;; ;; 'slower' or 'faster' than the original.
 
+; 4.40
+; ========================================================================
+;; With no restriction on floor assignments there are 5^5 possible
+;; solutions to this problem.
+;; With restrictions on floor assignments there are 5! possible solutions.
+
+;; This version runs noticably faster by restricting each subproblem
+;; to valid combinations from the previous problem.
+;;; Amb-Eval input:
+;; (define (multiple-dwelling)
+;;   (let ((cooper (amb 1 2 3 4 5)))
+;;     (require (not (= cooper 1)))
+;;     (let ((miller (amb 1 2 3 4 5)))
+;;       (require (> miller cooper))
+;;       (let ((fletcher (amb 1 2 3 4 5)))
+;; 	    (require (not (= fletcher 5)))
+;; 	    (require (not (= fletcher 1)))
+;; 	    (require (not (= (abs (- fletcher cooper)) 1)))
+;; 	    (let ((baker (amb 1 2 3 4 5)))
+;; 		  (require (not (= baker 5)))
+;; 		  (let ((smith (amb 1 2 3 4 5)))
+;; 		        (require (not (= (abs (- smith fletcher)) 1)))
+;; 			(require
+;; 			 (distinct? (list baker cooper fletcher miller smith)))
+;; 			(list (list 'baker baker)
+;; 			      (list 'cooper cooper)
+;; 			      (list 'fletcher fletcher)
+;; 			      (list 'miller miller)
+;; 			      (list 'smith smith))))))))
+
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
+
+;; ;;; Amb-Eval input:
+;; (multiple-dwelling)
+
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ((baker 3) (cooper 2) (fletcher 4) (miller 5) (smith 1))
+
+; 4.41
+; ========================================================================
+;; Ha ha this version tries combinations randomly until it finds a
+;; working solution.  It actually converged quickly on a solution!
+
+(define (distinct? items)
+  (cond ((null? items) true)
+        ((null? (cdr items)) true)
+        ((member (car items) (cdr items)) false)
+        (else (distinct? (cdr items)))))
+
+(define (multiple-dwelling)
+  (define (valid-solution? baker cooper fletcher miller smith)
+    (if (and
+	 (not (= cooper 1))
+	 (> miller cooper)
+	 (not (= fletcher 5))
+	 (not (= fletcher 1))
+	 (not (= (abs (- fletcher cooper)) 1))
+	 (not (= baker 5))
+	 (not (= (abs (- smith fletcher)) 1))
+	 (distinct? (list baker cooper fletcher miller smith)))
+	#t
+	#f))
+
+  (define (rand5) (+ (random 5) 1))
+
+  (define (iter baker cooper fletcher miller smith)
+    (if (valid-solution? baker cooper fletcher miller smith)
+	(list (list 'baker baker)
+	      (list 'cooper cooper)
+	      (list 'fletcher fletcher)
+	      (list 'miller miller)
+	      (list 'smith smith))
+	(iter (rand5) (rand5) (rand5) (rand5) (rand5))))
+
+  (iter 1 1 1 1 1))
+
+
+;; 1 ]=> (multiple-dwelling)
+;; Value 4: ((baker 3) (cooper 2) (fletcher 4) (miller 5) (smith 1))
+
+; 4.42
+; ========================================================================
+;; ;;; Amb-Eval input:
+;; (define (distinct? items)
+;;   (cond ((null? items) true)
+;;         ((null? (cdr items)) true)
+;;         ((member (car items) (cdr items)) false)
+;;         (else (distinct? (cdr items)))))
+
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
+
+;; ;;; Amb-Eval input:
+;; (define (require p) (if (not p) (amb)))
+
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
+
+;; ;;; Amb-Eval input:
+;; (define (liars)
+;;   (let ((betty (amb 1 3))
+;; 	(ethel (amb 1 5))
+;; 	(joan (amb 2 3))
+;; 	(kitty (amb 2))
+;; 	(mary (amb 4)))
+;;     (require
+;;      (distinct? (list betty ethel joan kitty mary)))
+;;     (list (list 'betty betty)
+;; 	  (list 'ethel ethel)
+;; 	  (list 'joan joan)
+;; 	  (list 'kitty kitty)
+;; 	  (list 'mary mary))))
+
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
+
+;; ;;; Amb-Eval input:
+;; (liars)
+
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ((betty 1) (ethel 5) (joan 3) (kitty 2) (mary 4))
+
+;; Betty, Kitty, Joan, Mary, Ethel.
