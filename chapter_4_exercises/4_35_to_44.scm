@@ -382,76 +382,103 @@
 
 ; 4.43
 ; ========================================================================
-(define (lornas-father)
-  (let ((mr-moore "Mr Moore")
-	(col-downing "Colonel Downing")
-	(mr-hall "Mr Hall")
-	(sir-barnacle-hood "Sir Barnacle Hood")
-	(dr-parker "Dr Parker"))
-    (let ((gabrielle (amb mr-moore col-downing mr-hall dr-parker))
-	  (lorna     (amb col-downing mr-hall sir-barnacle-hood dr-parker))
-	  (rosalind  (amb mr-moore col-downing sir-barnacle-hood dr-parker))
-	  (melissa   (amb mr-moore mr-hall sir-barnacle-hood dr-parker))
-	  (mary      (amb col-downing mr-hall sir-barnacle-hood dr-parker)))
+;; ;;; Amb-Eval input:
+;; (define (require p) (if (not p) (amb)))
 
-      (require
-       (distinct? (list gabrielle lorna rosalind melissa mary)))
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
 
-      (list (list 'gabrielle gabrielle)
-	    (list 'lorna lorna)
-	    (list 'rosalind rosalind)
-	    (list 'melissa melissa)
-	    (list 'mary mary)))))
+;; ;;; Amb-Eval input:
+;; (define (distinct? items)
+;;   (cond ((null? items) true)
+;;         ((null? (cdr items)) true)
+;;         ((member (car items) (cdr items)) false)
+;;         (else (distinct? (cdr items)))))
 
-;;; Amb-Eval input:
-(define (require p) (if (not p) (amb)))
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
 
-;;; Starting a new problem
-;;; Amb-Eval value:
-ok
+;; ;;; Amb-Eval input:
+;; (define (lornas-father)
+;;   (let ((mr-moore "Mr Moore")
+;; 	(col-downing "Colonel Downing")
+;; 	(mr-hall "Mr Hall")
+;; 	(sir-barnacle-hood "Sir Barnacle Hood")
+;; 	(dr-parker "Dr Parker"))
+;;     (let ((mary (amb mr-moore))
+;; 	  (melissa (amb sir-barnacle-hood))
+;; 	  (lorna (amb col-downing mr-hall dr-parker))
+;; 	  (rosalind (amb col-downing dr-parker))
+;; 	  (gabrielle (amb col-downing mr-hall)))
 
-;;; Amb-Eval input:
-(define (distinct? items)
-  (cond ((null? items) true)
-        ((null? (cdr items)) true)
-        ((member (car items) (cdr items)) false)
-        (else (distinct? (cdr items)))))
+;;       (require
+;;        (distinct? (list gabrielle lorna rosalind melissa mary)))
 
-;;; Starting a new problem
-;;; Amb-Eval value:
-ok
+;;       (list (list 'Gabrielle gabrielle)
+;; 	    (list 'Lorna lorna)
+;; 	    (list 'Rosalind rosalind)
+;; 	    (list 'Melissa melissa)
+;; 	    (list 'Mary mary)))))
 
-;;; Amb-Eval input:
-(define (lornas-father)
-  (let ((mr-moore "Mr Moore")
-	(col-downing "Colonel Downing")
-	(mr-hall "Mr Hall")
-	(sir-barnacle-hood "Sir Barnacle Hood")
-	(dr-parker "Dr Parker"))
-    (let ((mary (amb mr-moore))
-	  (melissa (amb sir-barnacle-hood))
-	  (lorna (amb col-downing mr-hall dr-parker))
-	  (rosalind (amb col-downing dr-parker))
-	  (gabrielle (amb col-downing mr-hall)))
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
 
-      (require
-       (distinct? (list gabrielle lorna rosalind melissa mary)))
+;; ;;; Amb-Eval input:
+;; (lornas-father)
 
-      (list (list 'Gabrielle gabrielle)
-	    (list 'Lorna lorna)
-	    (list 'Rosalind rosalind)
-	    (list 'Melissa melissa)
-	    (list 'Mary mary)))))
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ((gabrielle Mr Hall) (lorna Colonel Downing) (rosalind Dr Parker) (melissa Sir Barnacle Hood) (mary Mr Moore))
 
-;;; Starting a new problem
-;;; Amb-Eval value:
-ok
 
-;;; Amb-Eval input:
-(lornas-father)
+;; ;; ;; If we don't know that Mary is Mr. Moore's daughter. . .
+;; ;;; Amb-Eval input:
+;; (define (lornas-father-mary-isnt-moore)
+;;   (let ((mr-moore "Mr Moore")
+;; 	(col-downing "Colonel Downing")
+;; 	(mr-hall "Mr Hall")
+;; 	(sir-barnacle-hood "Sir Barnacle Hood")
+;; 	(dr-parker "Dr Parker"))
+;;     (let ((melissa (amb sir-barnacle-hood))
+;; 	  (lorna (amb col-downing mr-hall dr-parker))
+;; 	  (mary (amb mr-moore col-downing mr-hall dr-parker))
+;; 	  (rosalind (amb mr-moore col-downing dr-parker))
+;; 	  (gabrielle (amb mr-moore col-downing mr-hall)))
+;;       (require
+;;        (distinct? (list gabrielle lorna rosalind melissa mary)))
+;;       (require
+;;        (cond ((eq? gabrielle mr-moore) (eq? lorna dr-parker))
+;; 	     ((eq? gabrielle mr-hall) (eq? rosalind dr-parker))
+;; 	     (else false)))
 
-;;; Starting a new problem
-;;; Amb-Eval value:
-((gabrielle Mr Hall) (lorna Colonel Downing) (rosalind Dr Parker) (melissa Sir Barnacle Hood) (mary Mr Moore))
+;;       (list (list 'Gabrielle gabrielle)
+;; 	    (list 'Lorna lorna)
+;; 	    (list 'Rosalind rosalind)
+;; 	    (list 'Melissa melissa)
+;; 	    (list 'Mary mary)))))
 
-;;; Amb-Eval input:
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ok
+
+;; ;;; Amb-Eval input:
+;; (lornas-father-mary-isnt-moore)
+
+;; ;;; Starting a new problem
+;; ;;; Amb-Eval value:
+;; ((gabrielle Mr Hall) (lorna Colonel Downing) (rosalind Dr Parker) (melissa Sir Barnacle Hood) (mary Mr Moore))
+
+;; ;;; Amb-Eval input:
+;; try-again
+
+;; ;;; Amb-Eval value:
+;; ((gabrielle Mr Moore) (lorna Dr Parker) (rosalind Colonel Downing) (melissa Sir Barnacle Hood) (mary Mr Hall))
+
+;; ;;; Amb-Eval input:
+;; try-again
+
+;; ;;; There are no more values of
+;; (lornas-father-mary-isnt-moore)
