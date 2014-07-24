@@ -379,3 +379,84 @@
 ;; ((betty 1) (ethel 5) (joan 3) (kitty 2) (mary 4))
 
 ;; Betty, Kitty, Joan, Mary, Ethel.
+
+; 4.43
+; ========================================================================
+(define (lornas-father)
+  (let ((mr-moore "Mr Moore")
+	(col-downing "Colonel Downing")
+	(mr-hall "Mr Hall")
+	(sir-barnacle-hood "Sir Barnacle Hood")
+	(dr-parker "Dr Parker"))
+    (let ((gabrielle (amb mr-moore col-downing mr-hall dr-parker))
+	  (lorna     (amb col-downing mr-hall sir-barnacle-hood dr-parker))
+	  (rosalind  (amb mr-moore col-downing sir-barnacle-hood dr-parker))
+	  (melissa   (amb mr-moore mr-hall sir-barnacle-hood dr-parker))
+	  (mary      (amb col-downing mr-hall sir-barnacle-hood dr-parker)))
+
+      (require
+       (distinct? (list gabrielle lorna rosalind melissa mary)))
+
+      (list (list 'gabrielle gabrielle)
+	    (list 'lorna lorna)
+	    (list 'rosalind rosalind)
+	    (list 'melissa melissa)
+	    (list 'mary mary)))))
+
+;;; Amb-Eval input:
+(define (require p) (if (not p) (amb)))
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+ok
+
+;;; Amb-Eval input:
+(define (distinct? items)
+  (cond ((null? items) true)
+        ((null? (cdr items)) true)
+        ((member (car items) (cdr items)) false)
+        (else (distinct? (cdr items)))))
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+ok
+
+;;; Amb-Eval input:
+(define (lornas-father)
+  (let ((mr-moore "Mr Moore")
+	(col-downing "Colonel Downing")
+	(mr-hall "Mr Hall")
+	(sir-barnacle-hood "Sir Barnacle Hood")
+- A pair of black leather loafers
+- A black leather belt
+- A black leather watch
+- A solid red cotton polo
+- A solid navy wool suit
+	(dr-parker "Dr Parker"))
+    (let ((mary (amb mr-moore))
+	  (melissa (amb sir-barnacle-hood))
+	  (lorna (amb col-downing mr-hall dr-parker))
+	  (rosalind (amb col-downing dr-parker))
+	  (gabrielle (amb col-downing mr-hall)))
+
+      (require
+       (distinct? (list gabrielle lorna rosalind melissa mary)))
+
+      (list (list 'Gabrielle gabrielle)
+	    (list 'Lorna lorna)
+	    (list 'Rosalind rosalind)
+	    (list 'Melissa melissa)
+	    (list 'Mary mary)))))
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+ok
+
+;;; Amb-Eval input:
+(lornas-father)
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+((gabrielle Mr Hall) (lorna Colonel Downing) (rosalind Dr Parker) (melissa Sir Barnacle Hood) (mary Mr Moore))
+
+;;; Amb-Eval input:
