@@ -427,11 +427,6 @@ ok
 	(col-downing "Colonel Downing")
 	(mr-hall "Mr Hall")
 	(sir-barnacle-hood "Sir Barnacle Hood")
-- A pair of black leather loafers
-- A black leather belt
-- A black leather watch
-- A solid red cotton polo
-- A solid navy wool suit
 	(dr-parker "Dr Parker"))
     (let ((mary (amb mr-moore))
 	  (melissa (amb sir-barnacle-hood))
