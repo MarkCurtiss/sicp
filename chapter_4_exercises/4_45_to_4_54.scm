@@ -220,3 +220,40 @@ try-again
 ;;; There are no more values of
 (parse (quote (the professor lectures to the student in the class with the cat)))
 
+; 4.46
+; ========================================================================
+;; All of our parsing methods are written assuming left-to-right!
+;; If we parsed right-to-left our noun phrases would go noun -> article, or
+;; 'cat the'.
+
+; 4.47
+; ========================================================================
+(define (parse-verb-phrase)
+  (amb (parse-word verbs)
+       (list 'verb-phrase
+             (parse-verb-phrase)
+             (parse-prepositional-phrase))))
+
+;; This works so long as (parse-word) succeeds - as soon as it doesn't,
+;; we get an infinite loop.  If we change the order of the arguments,
+;; we immediately get an infinite loop.  It is because we are calling
+;; parse-verb-phrase without a base case to terminate recursion!
+
+;;; Amb-Eval input:
+(define (parse-verb-phrase)
+  (amb (list 'verb-phrase
+	     (parse-verb-phrase)
+	     (parse-prepositional-phrase))
+       (parse-word verbs)))
+
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+ok
+
+;;; Amb-Eval input:
+(parse '(the professor lectures to the student in the class with the cat))
+
+;;; Starting a new problem
+;; (this goes on forever and doesn't terminate).
+
