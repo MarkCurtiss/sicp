@@ -482,3 +482,51 @@
 
 ;; ;;; There are no more values of
 ;; (lornas-father-mary-isnt-moore)
+
+; 4.44
+; ========================================================================
+;; This should work but I can't prove it because the sub-evaluator
+;; doesn't know about map!  But also I can't define (map) in it or it flips
+;; out.  I've spent 2 hours on this and am going to move on.
+;; Debugging things inside of the sub-evaluator is maddening; I could spend
+;; infinite more hours doing that.
+(define (8-queens)
+  (define (queen-row position)
+    (car position))
+  (define (queen-column position)
+    (cdr position))
+
+  (define (queens-dont-share-column queens)
+    (distinct? (map queen-column queens)))
+
+  (define (queens-dont-share-diagonal queen1 queen2)
+    (not
+     (=
+      (abs (- (queen-column queen1) (queen-column queen2)))
+      (abs (- (queen-row queen1) (queen-row queen2))))))
+
+  (define possibilities '(0 1 2 3 4 5 6 7))
+
+  (let ((queen1 (cons 0 (amb possibilities))))
+    (let ((queen2 (cons 1 (amb possibilities))))
+      (require (queens-dont-share-diagonal queen1 queen2))
+      (let ((queen3 (cons 2 (amb possibilities))))
+	(require (queens-dont-share-diagonal queen2 queen3))
+	(let ((queen4 (cons 3 (amb possibilities))))
+	  (require (queens-dont-share-diagonal queen3 queen4))
+	  (let ((queen5 (cons 4 (amb possibilities))))
+	    (require (queens-dont-share-diagonal queen4 queen5))
+	    (let ((queen6 (cons 5 (amb possibilities))))
+	      (require (queens-dont-share-diagonal queen5 queen6))
+	      (let ((queen7 (cons 6 (amb possibilities))))
+		(require (queens-dont-share-diagonal queen6 queen7))
+		(let ((queen8 (cons 7 (amb possibilities))))
+		  (require (queens-dont-share-diagonal queen7 queen8))
+
+		  (require (queens-dont-share-column
+			    (list queen1 queen2 queen3 queen4
+				  queen5 queen6 queen7 queen8)))
+
+		  (list
+		   queen1 queen2 queen3 queen4
+		   queen5 queen6 queen7 queen8))))))))))
