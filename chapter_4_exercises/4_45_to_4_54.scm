@@ -257,3 +257,38 @@ ok
 ;;; Starting a new problem
 ;; (this goes on forever and doesn't terminate).
 
+; 4.48
+; ========================================================================
+(define adjectives '(adjective sleepy cranky stoned))
+
+(define (parse-adjective-phrase)
+  (list 'adjective-phrase
+	(parse-word articles)
+	(parse-word adjectives)
+	(parse-word nouns)))
+
+(define (parse-simple-noun-phrase)
+  (amb
+   (list 'simple-noun-phrase
+	 (parse-word articles)
+	 (parse-word adjectives)
+	 (parse-word nouns))
+   (list 'simple-noun-phrase
+	 (parse-word articles)
+	 (parse-word nouns))))
+
+(parse '(the cranky professor lectures to the stoned student in the class with the sleepy cat))
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+;; (sentence
+;;  (simple-noun-phrase (article the) (adjective cranky) (noun professor))
+;;  (verb-phrase
+;;   (verb-phrase
+;;    (verb-phrase (verb lectures)
+;; 		(prep-phrase (prep to)
+;; 			     (simple-noun-phrase (article the) (adjective stoned) (noun student))))
+;;    (prep-phrase (prep in)
+;; 		(simple-noun-phrase (article the) (noun class))))
+;;   (prep-phrase (prep with)
+;; 	       (simple-noun-phrase (article the) (adjective sleepy) (noun cat)))))
