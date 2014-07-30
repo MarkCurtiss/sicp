@@ -292,3 +292,60 @@ ok
 ;; 		(simple-noun-phrase (article the) (noun class))))
 ;;   (prep-phrase (prep with)
 ;; 	       (simple-noun-phrase (article the) (adjective sleepy) (noun cat)))))
+
+; 4.49
+; ========================================================================
+(define (an-element-of items)
+  (require (not (null? items)))
+  (amb (car items) (an-element-of (cdr items))))
+
+(define (parse-word word-list)
+  (require (not (null? *unparsed*)))
+  (set! *unparsed* (cdr *unparsed*))
+  (list (car word-list) (an-element-of (cdr word-list))))
+
+
+;;; Amb-Eval input:
+(parse '(the professor lectures to the student))
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+(sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article the) (noun student)))))
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article the) (noun professor)))))
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article the) (noun cat)))))
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article the) (noun class)))))
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article a) (noun student)))))
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article a) (noun professor)))))
+
+;;; Amb-Eval input:
+try-again
+
+;;; Amb-Eval value:
+(sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article a) (noun cat)))))
+
+;;; Amb-Eval input:
