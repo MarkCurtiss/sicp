@@ -348,4 +348,58 @@ try-again
 ;;; Amb-Eval value:
 (sentence (simple-noun-phrase (article the) (noun student)) (verb-phrase (verb studies) (prep-phrase (prep for) (simple-noun-phrase (article a) (noun cat)))))
 
+; 4.50
+; ========================================================================
+;; This code *should* work but again I can't get the amb-evaluator to
+;; play ball - whenever I try and call (sort) inside of it, it says:
+
 ;;; Amb-Eval input:
+;; (sort (list 1 2 3 4)
+;;       (lambda (x y)
+;; 	(eq? 0 (random 2))))
+;;; Starting a new problem
+;The object (procedure (x y) #[compound-procedure 2] (((false true car cdr cons null? list memq member not + - * = > >= abs remainder integer? sqrt eq? sort random) #f #t (primitive #[compiled-procedure 3 ("list" #x1) #x3 #x4d2a2]) (primitive #[compiled-procedure 4 ("list" #x2) #x3 #x4d29b]) (primitive #[compiled-procedure 5 ("list" #x3) #x3 #x4d295]) (primitive #[compiled-procedure 6 ("list" #x5) #x3 #x4d286]) (primitive #[compiled-procedure 7 ("list" #x9) #x3 #x4d269]) (primitive #[compiled-procedure 8 ("list" #x8a) #x3 #x4c6da]) (primitive #[compiled-procedure 9 ("list" #x8c) #x3 #x4c6a5]) (primitive #[compiled-procedure 10 ("boole" #x1) #x3 #x48a74]) (primitive #[arity-dispatched-procedure 11]) (primitive #[arity-dispatched-procedure 12]) (primitive #[arity-dispatched-procedure 13]) (primitive #[arity-dispatched-procedure 14]) (primitive #[arity-dispatched-procedure 15]) (primitive #[arity-dispatched-procedure 16]) (primitive #[compiled-procedure 17 ("arith" #xb6) #x3 #x37924]) (primitive #[compiled-procedure 18 ("arith" #x10b) #x3 #x371a8]) (primitive #[compiled-procedure 19 ("arith" #x9d) #x3 #x37da9]) (primitive #[compiled-procedure 20 ("arith" #xdc) #x3 #x3750e]) (primitive #[compiled-procedure 21 ("global" #x14) #x3 #x480ab]) (primitive #[compiled-procedure 22 ("msort" #x1) #x3 #x47ae1]) (primitive #[compiled-procedure 23 ("random" #x7) #x3 #x4b5ea])))) is not applicable.
+
+;; And then kills my evaluator subprocess.
+
+(load "book_code/ch4-ambeval.scm")
+(define the-global-environment (setup-environment))
+(driver-loop)
+
+(define (random-sort l)
+  (sort l
+        (lambda (x y)
+          (eq? 0 (random 2)))))
+
+(define (ramb? exp) (tagged-list? exp 'ramb))
+(define (ramb-choices exp) (random-sort (cdr exp)))
+
+(define (analyze-ramb exp)
+  (let ((cprocs (map analyze (ramb-choices exp))))
+    (lambda (env succeed fail)
+      (define (try-next choices)
+        (if (null? choices)
+            (fail)
+            ((car choices) env
+                           succeed
+                           (lambda ()
+                             (try-next (cdr choices))))))
+      (try-next cprocs))))
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp)
+         (analyze-self-evaluating exp))
+        ((quoted? exp) (analyze-quoted exp))
+        ((variable? exp) (analyze-variable exp))
+        ((assignment? exp) (analyze-assignment exp))
+        ((definition? exp) (analyze-definition exp))
+        ((if? exp) (analyze-if exp))
+        ((lambda? exp) (analyze-lambda exp))
+        ((begin? exp) (analyze-sequence (begin-actions exp)))
+        ((cond? exp) (analyze (cond->if exp)))
+        ((let? exp) (analyze (let->combination exp)))
+        ((amb? exp) (analyze-amb exp))
+	((ramb? exp) (analyze-ramb exp))
+        ((application? exp) (analyze-application exp))
+        (else
+         (error "Unknown expression type -- ANALYZE" exp))))

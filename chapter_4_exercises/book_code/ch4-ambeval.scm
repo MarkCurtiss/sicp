@@ -288,6 +288,8 @@
         (list 'integer? integer?)
         (list 'sqrt sqrt)
         (list 'eq? eq?)
+	(list 'sort sort)
+	(list 'random random)
 ;;      more primitives
         ))
 
