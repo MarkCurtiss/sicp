@@ -406,6 +406,14 @@ try-again
 
 ; 4.51
 ; ========================================================================
+;; Okay I finally managed to get the amb-evaluator to recognize my
+;; modified definitions of (eval)!  It is all in the order you load your
+;; code into the environment.
+;; First load book_code/ch4-ambeval.scm
+;; Then load the custom (analyze) and operators below
+;; Then start the (driver-loop)
+;; Then load the definitions like (require) and (an-element-of)
+;; Finally you can run your program that uses permanent-set!
 (define (permanent-assignment? exp)
   (tagged-list? exp 'permanent-set!))
 
@@ -433,7 +441,6 @@ try-again
         ((cond? exp) (analyze (cond->if exp)))
         ((let? exp) (analyze (let->combination exp)))
         ((amb? exp) (analyze-amb exp))
-	((ramb? exp) (analyze-ramb exp))
         ((application? exp) (analyze-application exp))
         (else
          (error "Unknown expression type -- ANALYZE" exp))))
@@ -446,13 +453,15 @@ try-again
 
 (let ((x (an-element-of '(a b c)))
       (y (an-element-of '(a b c))))
-  (set! count (+ count 1))
+  (permanent-set! count (+ count 1))
   (require (not (eq? x y)))
   (list x y count))
 
-;;How do I get the evaluator to reload the definition of eval?
-;;It doesn't know about permanent-set! even after I reload
-;;analyze.
+;;; Starting a new problem
+;;; Amb-Eval value:
+;; (a b 3)
 
-;;Anyways if we didn't use permanent-set! the results would be
+;;If we didn't use permanent-set! the results would be
 ;;(a b 1) (a c 1)
+
+
