@@ -290,6 +290,7 @@
         (list 'eq? eq?)
 	(list 'sort sort)
 	(list 'random random)
+	(list 'even? even?)
 ;;      more primitives
         ))
 

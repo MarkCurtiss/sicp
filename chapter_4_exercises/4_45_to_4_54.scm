@@ -464,4 +464,60 @@ try-again
 ;;If we didn't use permanent-set! the results would be
 ;;(a b 1) (a c 1)
 
+; 4.52
+; ========================================================================
+(define (if-fail? exp)
+  (tagged-list? exp 'if-fail))
 
+(define (analyze-if-fail exp)
+  (let ((function (analyze (if-predicate exp)))
+        (fail-val (analyze (if-consequent exp))))
+    (lambda (env succeed fail)
+      (function env
+		succeed
+		(lambda ()
+		  (fail-val env succeed fail))))))
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp)
+         (analyze-self-evaluating exp))
+        ((quoted? exp) (analyze-quoted exp))
+        ((variable? exp) (analyze-variable exp))
+        ((assignment? exp) (analyze-assignment exp))
+	((permanent-assignment? exp) (analyze-permanent-assignment exp))
+        ((definition? exp) (analyze-definition exp))
+        ((if? exp) (analyze-if exp))
+	((if-fail? exp) (analyze-if-fail exp))
+        ((lambda? exp) (analyze-lambda exp))
+        ((begin? exp) (analyze-sequence (begin-actions exp)))
+        ((cond? exp) (analyze (cond->if exp)))
+        ((let? exp) (analyze (let->combination exp)))
+        ((amb? exp) (analyze-amb exp))
+        ((application? exp) (analyze-application exp))
+        (else
+         (error "Unknown expression type -- ANALYZE" exp))))
+
+(define (require p) (if (not p) (amb)))
+(define (an-element-of items)
+  (require (not (null? items)))
+  (amb (car items) (an-element-of (cdr items))))
+
+;; I *hate* when they give us code that uses primitives that our
+;; evaluator doesn't define.  Why do they do that ??
+(if-fail (let ((x (an-element-of '(1 3 5))))
+           (require (even? x))
+           x)
+         'all-odd)
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+;; all-odd
+
+(if-fail (let ((x (an-element-of '(1 3 5 8))))
+           (require (even? x))
+           x)
+         'all-odd)
+
+;;; Starting a new problem
+;;; Amb-Eval value:
+;; 8
