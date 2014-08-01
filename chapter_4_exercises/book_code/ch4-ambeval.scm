@@ -27,6 +27,7 @@
 ;;Note: It is loaded first so that the section 4.2 definition
 ;; of eval overrides the definition from 4.1.1
 (load "book_code/ch4-mceval.scm")
+(load "../prime.scm")
 
 
 
@@ -291,6 +292,7 @@
 	(list 'sort sort)
 	(list 'random random)
 	(list 'even? even?)
+	(list 'prime? prime?)
 ;;      more primitives
         ))
 
