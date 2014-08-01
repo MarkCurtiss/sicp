@@ -539,3 +539,22 @@ try-again
 ;;; Starting a new problem
 ;;; Amb-Eval value:
 ;; ((8 35) (3 110) (3 20))
+
+; 4.54
+; ========================================================================
+(define (require? exp) (tagged-list? exp 'require))
+
+(define (require-predicate exp) (cadr exp))
+
+;; in analyze
+;; ((require? exp) (analyze-require exp))
+
+(define (analyze-require exp)
+  (let ((pproc (analyze (require-predicate exp))))
+    (lambda (env succeed fail)
+      (pproc env
+             (lambda (pred-value fail2)
+               (if (not (true? pred-value))
+                   (fail2)
+                   (succeed 'ok fail2)))
+             fail))))
