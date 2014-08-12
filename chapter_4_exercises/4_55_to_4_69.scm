@@ -74,3 +74,112 @@
 (and (supervisor (cratchet robert) (scrooge eben)) (not (job (scrooge eben) (computer chief accountant))) (job (scrooge eben) (accounting chief accountant)))
 (and (supervisor (scrooge eben) (warbucks oliver)) (not (job (warbucks oliver) (computer big wheel))) (job (warbucks oliver) (administration big wheel)))
 (and (supervisor (bitdiddle ben) (warbucks oliver)) (not (job (warbucks oliver) (computer big wheel))) (job (warbucks oliver) (administration big wheel)))
+
+; 4.57
+; ========================================================================
+;; Note that I couldn't get this rule to work in the evaluator until I
+;; looked online and found other people using (assert!) in their solutions.
+;; Why do they give us exercises that don't work with the implementation
+;; they've given us so far??
+(assert!
+ (rule (can-replace ?replacement ?replacee)
+       (and
+	(job ?replacement ?replacementjob)
+	(job ?replacee ?replaceejob)
+	(not (same ?replacement ?replacee))
+	(or
+	 (same ?replacementjob ?replaceejob)
+	 (can-do-job ?replacementjob ?replaceejob))))
+ )
+
+;; a. all people who can replace Cy D. Fect
+;;; Query input:
+(can-replace ?x (Fect Cy D))
+
+;;; Query results:
+(can-replace (hacker alyssa p) (fect cy d))
+(can-replace (bitdiddle ben) (fect cy d))
+
+;; b. all people who can replace someone who is being paid more than they
+;; are, together with the two salaries
+;;; Query input:
+(and
+ (salary ?replacement ?replacementsalary)
+ (salary ?replacee ?replaceesalary)
+ (lisp-value > ?replaceesalary ?replacementsalary)
+ (can-replace ?replacement ?replacee))
+
+;;; Query results:
+(and (salary (aull dewitt) 25000) (salary (warbucks oliver) 150000) (lisp-value > 150000 25000) (can-replace (aull dewitt) (warbucks oliver)))
+(and (salary (fect cy d) 35000) (salary (hacker alyssa p) 40000) (lisp-value > 40000 35000) (can-replace (fect cy d) (hacker alyssa p)))
+
+; 4.58
+; ========================================================================
+(assert!
+ (rule (big-shot ?person ?division)
+       (and (job ?person (?division . ?x))
+	    (or
+	     (not (supervisor ?person ?supervisor))
+	     (and
+	      (supervisor ?person ?supervisor)
+	      (not (job ?supervisor (?division . ?y)))))))
+ )
+
+;;; Query input:
+(big-shot ?x ?y)
+
+;;; Query results:
+(big-shot (warbucks oliver) administration)
+(big-shot (scrooge eben) accounting)
+(big-shot (bitdiddle ben) computer)
+
+; 4.59
+; ========================================================================
+;; How am I supposed to add data to the database.  They have not shown us!
+;; Maybe (assert!) will work here as well?  Is this whole chapter a
+;; meta-lesson in always reading the entire source before implementing
+;; anything?
+(assert! (meeting acounting (Monday 9am)))
+(assert! (meeting administration (Monday 10am)))
+(assert! (meeting computer (Wednesday 3pm)))
+(assert! (meeting administration (Friday 1pm)))
+(assert! (meeting whole-company (Wednesday 4pm)))
+
+;; a. On Friday morning, Ben wants to query the data base for all the
+;; meetings that occur that day. What query should he use?
+;;; Query input:
+(meeting ?org (Friday ?time))
+
+;;; Query results:
+(meeting administration (friday 1pm))
+
+;; b. Alyssa P. Hacker is unimpressed. She thinks it would be much more
+;; useful to be able to ask for her meetings by specifying her name. So
+;; she designs a rule that says that a person's meetings include all
+;; whole-company meetings plus all meetings of that person's division.
+;; Fill in the body of Alyssa's rule.
+(assert!
+ (rule (meeting-time ?person ?day-and-time)
+       (and
+	(job ?person (?division . ?y))
+	(or
+	 (meeting whole-company ?day-and-time)
+	 (meeting ?division ?day-and-time))))
+ )
+
+;;; Query input:
+(meeting-time (hacker alyssa p) ?time)
+
+;;; Query results:
+(meeting-time (hacker alyssa p) (wednesday 4pm))
+(meeting-time (hacker alyssa p) (wednesday 3pm))
+
+;; c. Alyssa arrives at work on Wednesday morning and wonders what meetings
+;; she has to attend that day. Having defined the above rule, what query
+;; should she make to find this out?
+;;; Query input:
+(meeting-time (hacker alyssa p) (Wednesday ?time))
+
+;;; Query results:
+(meeting-time (hacker alyssa p) (wednesday 4pm))
+(meeting-time (hacker alyssa p) (wednesday 3pm))
