@@ -135,7 +135,7 @@
 
 ; 4.59
 ; ========================================================================
-;; How am I supposed to add data to the database.  They have not shown us!
+;; How am I supposed to add data to the database?  They have not shown us!
 ;; Maybe (assert!) will work here as well?  Is this whole chapter a
 ;; meta-lesson in always reading the entire source before implementing
 ;; anything?
@@ -183,3 +183,35 @@
 ;;; Query results:
 (meeting-time (hacker alyssa p) (wednesday 4pm))
 (meeting-time (hacker alyssa p) (wednesday 3pm))
+
+; 4.60
+; ========================================================================
+;; This happens because either combination of the two people satisfies
+;; the rule.
+;; I don't think there is a way to get the unique pairs with the language
+;; given to us, as we don't have any way to filter result sets.
+
+; 4.61
+; ========================================================================
+(assert!
+ (rule (?x next-to ?y in (?x ?y . ?u)))
+ )
+
+(assert!
+ (rule (?x next-to ?y in (?v . ?z))
+       (?x next-to ?y in ?z))
+ )
+
+;;; Query input:
+(?x next-to ?y in (1 (2 3) 4))
+
+;;; Query results:
+((2 3) next-to 4 in (1 (2 3) 4))
+(1 next-to (2 3) in (1 (2 3) 4))
+
+;;; Query input:
+(?x next-to 1 in (2 1 3 1))
+
+;;; Query results:
+(3 next-to 1 in (2 1 3 1))
+(2 next-to 1 in (2 1 3 1))
