@@ -215,3 +215,42 @@
 ;;; Query results:
 (3 next-to 1 in (2 1 3 1))
 (2 next-to 1 in (2 1 3 1))
+
+; 4.62
+; ========================================================================
+(assert!
+ (rule (last-pair (?x) (?x)))
+ )
+
+(assert!
+ (rule (last-pair (?a . ?b) (?c))
+       (last-pair ?b (?c)))
+ )
+
+
+;;; Query input:
+(last-pair (3) ?x)
+
+;;; Query results:
+(last-pair (3) (3))
+
+;;; Query input:
+(last-pair (1 2 3) ?x)
+
+;;; Query results:
+(last-pair (1 2 3) (3))
+
+;;; Query input:
+(last-pair (2 ?x) (3))
+
+;;; Query results:
+(last-pair (2 3) (3))
+
+;; Do your rules work correctly on queries such as (last-pair ?x (3))
+;; No.
+;;; Query input:
+(last-pair ?x (3))
+
+;;; Query results:
+;Aborting!: maximum recursion depth exceeded
+
