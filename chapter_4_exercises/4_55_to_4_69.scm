@@ -254,3 +254,58 @@
 ;;; Query results:
 ;Aborting!: maximum recursion depth exceeded
 
+; 4.63
+; ========================================================================
+(load "book_code/ch4-query.scm")
+
+(define genesis-data-base
+  '(
+    (son Adam Cain)
+    (son Cain Enoch)
+    (son Enoch Irad)
+    (son Irad Mehujael)
+    (son Mehujael Methushael)
+    (son Methushael Lamech)
+    (wife Lamech Ada)
+    (son Ada Jabal)
+    (son Ada Jubal)
+
+    (rule (son-of ?father ?son)
+	  (or
+	   (son ?father ?son)
+	   (and
+	    (wife ?father ?wife)
+	    (son ?wife ?son))
+	   ))
+
+    (rule (grandson-of ?grandfather ?grandson)
+	  (and
+	   (son-of ?grandfather ?father)
+	   (son-of ?father ?grandson)))
+    ))
+
+(initialize-data-base genesis-data-base)
+(query-driver-loop)
+
+;;find the grandson of Cain
+;;; Query input:
+(grandson-of cain ?x)
+
+;;; Query results:
+(grandson-of cain irad)
+
+;;the sons of Lamech
+;;; Query input:
+(son-of lamech ?x)
+
+;;; Query results:
+(son-of lamech jubal)
+(son-of lamech jabal)
+
+;;the grandsons of Methushael
+;;; Query input:
+(grandson-of methushael ?x)
+
+;;; Query results:
+(grandson-of methushael jubal)
+(grandson-of methushael jabal)
