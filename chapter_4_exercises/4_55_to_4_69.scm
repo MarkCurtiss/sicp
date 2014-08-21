@@ -309,3 +309,22 @@
 ;;; Query results:
 (grandson-of methushael jubal)
 (grandson-of methushael jabal)
+
+; 4.64
+; ========================================================================
+;; The application of (outranked-by) in the (and) clause will recurse
+;; indefinitely, as the (supervisor) clause will never fail to produce
+;; a valid frame.
+
+; 4.65
+; ========================================================================
+;; Our query language has no mechanism for producing unique results and
+;; Oliver Warbucks is the manager of 2 middle managers, one of whom (Ben
+;; Bitdiddle) has three people reporting to him.
+
+; 4.66
+; ========================================================================
+;; Ben's mapping function will have the same issue with duplicate values as
+;; Cy D. Fect discovered in 4.65.
+;; One way to deal with this would be to add a (unique) operator to the
+;; query language - this would remove duplicate values from the unified frame.
