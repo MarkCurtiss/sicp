@@ -328,3 +328,43 @@
 ;; Cy D. Fect discovered in 4.65.
 ;; One way to deal with this would be to add a (unique) operator to the
 ;; query language - this would remove duplicate values from the unified frame.
+
+; 4.67
+; ========================================================================
+;; We maintain a hash keyed on frame+pattern+datum and before we add a new
+;; frame to the stream we first check if that combination already exists in
+;; the hash.  If so, we don't add the new frame.
+
+; 4.68
+; ========================================================================
+(assert!
+ (rule (append-to-form () ?y ?y))
+ )
+
+(assert!
+ (rule (append-to-form (?u . ?v) ?y (?u . ?z))
+       (append-to-form ?v ?y ?z))
+ )
+
+(assert!
+ (rule (reverse (?y) (?y)))
+ )
+
+(assert!
+ (rule (reverse (?car . ?cdr) ?reversed-list)
+       (and
+	(reverse ?cdr ?reversed-cdr)
+	(append-to-form ?reversed-cdr (?car) ?reversed-list)))
+ )
+
+;;; Query input:
+(reverse (1 2 3) ?x)
+
+;;; Query results:
+(reverse (1 2 3) (3 2 1))
+
+;;; Query input:
+(reverse ?x (1 2 3))
+
+;;; Query results:
+;; This recurses indefinitely.
