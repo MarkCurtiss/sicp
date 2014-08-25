@@ -368,3 +368,51 @@
 
 ;;; Query results:
 ;; This recurses indefinitely.
+
+; 4.69
+; ========================================================================
+(assert!
+ (rule (ends-in-grandson (grandson)))
+ )
+
+(assert!
+ (rule (ends-in-grandson (?x . ?y))
+       (ends-in-grandson ?y))
+ )
+
+(assert!
+ (rule ((great grandson) ?grandfather ?great-grandson)
+       (and (son-of ?grandfather ?son)
+	    (grandson-of ?son ?great-grandson)))
+ )
+
+(assert!
+ (rule ((great . ?relationship) ?x ?y)
+       (and
+	(son-of ?x ?father)
+	(?relationship ?father ?y)
+	(ends-in-grandson ?relationship)))
+ )
+
+;;; Query input:
+(?relationship adam irad)
+
+;;; Query results:
+((great . grandson) adam irad)
+
+;;; Query input:
+((great grandson) ?g ?ggs)
+
+;;; Query results:
+((great grandson) mehujael jubal)
+((great grandson) irad lamech)
+((great grandson) mehujael jabal)
+((great grandson) enoch methushael)
+((great grandson) cain mehujael)
+((great grandson) adam irad)
+
+;;; Query input:
+(?relationship adam jabal)
+
+;;; Query results:
+((great great great great great grandson) adam jabal)
