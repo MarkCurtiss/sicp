@@ -416,3 +416,9 @@
 
 ;;; Query results:
 ((great great great great great grandson) adam jabal)
+
+; 4.70
+; ========================================================================
+;; Without the (let) binding the old rules to a variable, the
+;; (cons-stream) call would create a stream consisting solely of the latest
+;; rule.
