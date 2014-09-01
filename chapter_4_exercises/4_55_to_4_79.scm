@@ -454,3 +454,14 @@ Assertion added to data base.
 
 ;;; Query results:
 ;Aborting!: maximum recursion depth exceeded
+
+; 4.72
+; ========================================================================
+;; If the first stream or both streams are infinite and you don't interleave
+;; them, you'll only ever see elements from the first infinite stream you
+;; encounter.  See 4.72.
+
+; 4.73
+; ========================================================================
+;; Again, it protects you from infinite recursion in the case where the
+;; stream is self-referential.
