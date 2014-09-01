@@ -422,3 +422,35 @@
 ;; Without the (let) binding the old rules to a variable, the
 ;; (cons-stream) call would create a stream consisting solely of the latest
 ;; rule.
+
+; 4.71
+; ========================================================================
+;; Both implementations will recurse indefinitely but the book's will let
+;; you see the output from each iteration since (apply-rule) gets 
+;; evaluated as part of (display-stream).
+
+;; Here is the output from using the book's implementation:
+;;; Query input:
+(assert! (rule (recurses ?x) (or (same ?x ?x) (recurses ?x))))
+
+Assertion added to data base.
+
+;;; Query input:
+(recurses (bitdiddle ben))
+
+;;; Query results:
+(recurses (bitdiddle ben))
+(recurses (bitdiddle ben))
+(recurses (bitdiddle ben))
+;;; continues forever
+
+;; Here is the output from Louis Reasoner's version:
+;;; Query input:
+(assert! (rule (recurses ?x) (or (same ?x ?x) (recurses ?x))))
+
+Assertion added to data base.
+;;; Query input:
+(recurses (bitdiddle ben))
+
+;;; Query results:
+;Aborting!: maximum recursion depth exceeded
