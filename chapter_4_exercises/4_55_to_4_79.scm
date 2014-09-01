@@ -465,3 +465,16 @@ Assertion added to data base.
 ; ========================================================================
 ;; Again, it protects you from infinite recursion in the case where the
 ;; stream is self-referential.
+
+; 4.74
+; ========================================================================
+;; a.
+(define (simple-stream-flatmap proc s)
+  (simple-flatten (stream-map proc s)))
+
+(define (simple-flatten stream)
+  (stream-map stream-car
+              (stream-filter (lambda (s) (not (stream-null? s))) stream)))
+
+;; b.
+;; No.
