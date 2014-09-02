@@ -108,6 +108,23 @@
 
 ;;(put 'not 'qeval negate)
 
+(define (uniquely-asserted query frame-stream)
+  (define (unique-query exp) (car exp))
+
+  (define (has-only-one-element? stream)
+    (= (stream-length stream) 1))
+
+   (stream-flatmap
+    (lambda (frame)
+      (let ((stream (qeval (unique-query query) (singleton-stream frame))))
+	(if (has-only-one-element? stream)
+	    stream
+	    the-empty-stream)))
+    frame-stream)
+   )
+
+;;(put 'unique 'qeval uniquely-asserted)
+
 (define (lisp-value call frame-stream)
   (stream-flatmap
    (lambda (frame)
@@ -570,6 +587,7 @@
   (put 'and 'qeval conjoin)
   (put 'or 'qeval disjoin)
   (put 'not 'qeval negate)
+  (put 'unique 'qeval uniquely-asserted)
   (put 'lisp-value 'qeval lisp-value)
   (put 'always-true 'qeval always-true)
   (deal-out rules-and-assertions '() '()))

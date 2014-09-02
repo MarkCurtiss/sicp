@@ -478,3 +478,21 @@ Assertion added to data base.
 
 ;; b.
 ;; No.
+
+; 4.75
+; ========================================================================
+;; See my additions to book_code/ch4-query.scm.
+
+;;; Query input:
+(unique (job ?x (computer wizard)))
+
+;;; Query results:
+(unique (job (bitdiddle ben) (computer wizard)))
+
+;; Test your implementation by forming a query that lists all people who supervise precisely one person.
+;;; Query input:
+(and (supervisor ?person ?boss) (unique (supervisor ?x ?boss)))
+
+;;; Query results:
+(and (supervisor (cratchet robert) (scrooge eben)) (unique (supervisor (cratchet robert) (scrooge eben))))
+(and (supervisor (reasoner louis) (hacker alyssa p)) (unique (supervisor (reasoner louis) (hacker alyssa p))))
