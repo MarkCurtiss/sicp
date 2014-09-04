@@ -496,3 +496,21 @@ Assertion added to data base.
 ;;; Query results:
 (and (supervisor (cratchet robert) (scrooge eben)) (unique (supervisor (cratchet robert) (scrooge eben))))
 (and (supervisor (reasoner louis) (hacker alyssa p)) (unique (supervisor (reasoner louis) (hacker alyssa p))))
+
+; 4.76
+; ========================================================================
+;; See my changes to conjoin in book_code/ch4-query.scm.
+
+;;; Query input:
+(and (salary ?person ?amount) (job ?person ?division))
+
+;;; Query results:
+(and (salary (bitdiddle ben) 60000) (job (bitdiddle ben) (computer wizard)))
+(and (salary (hacker alyssa p) 40000) (job (hacker alyssa p) (computer programmer)))
+(and (salary (fect cy d) 35000) (job (fect cy d) (computer programmer)))
+(and (salary (tweakit lem e) 25000) (job (tweakit lem e) (computer technician)))
+(and (salary (reasoner louis) 30000) (job (reasoner louis) (computer programmer trainee)))
+(and (salary (warbucks oliver) 150000) (job (warbucks oliver) (administration big wheel)))
+(and (salary (scrooge eben) 75000) (job (scrooge eben) (accounting chief accountant)))
+(and (salary (cratchet robert) 18000) (job (cratchet robert) (accounting scrivener)))
+(and (salary (aull dewitt) 25000) (job (aull dewitt) (administration secretary)))

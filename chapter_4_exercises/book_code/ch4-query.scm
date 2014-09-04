@@ -76,11 +76,70 @@
 ;;;Compound queries
 
 (define (conjoin conjuncts frame-stream)
-  (if (empty-conjunction? conjuncts)
-      frame-stream
-      (conjoin (rest-conjuncts conjuncts)
-               (qeval (first-conjunct conjuncts)
-                      frame-stream))))
+  (define (merge-frames frame-one frame-two)
+    (define (iter bindings other-frame result-frame)
+      (if (null? bindings)
+	  result-frame
+	  (let ((binding (car bindings)))
+	    (if (binding-in-frame (binding-variable binding) result-frame)
+		(iter (cdr bindings) other-frame result-frame)
+		(iter
+		 (cdr bindings)
+		 other-frame
+		 (extend-if-possible (binding-variable binding) (binding-value binding) result-frame))))))
+
+    (let ((result-frame (iter frame-one frame-two '())))
+      (iter frame-two frame-one result-frame))
+    )
+
+  (define (merge-frame-streams frame-stream-one frame-stream-two)
+    (define (can-merge? frame1 frame2)
+      (define (find-mergeable-binding bindings)
+	(cond ((null? bindings) false)
+	      ((binding-in-frame (binding-variable (car bindings)) frame2) true)
+	      (else (find-mergeable-binding (cdr bindings)))))
+
+      (find-mergeable-binding frame1)
+      )
+
+    (define (iter S1 S2 result-list)
+      (cond ((stream-null? S1)
+	     result-list)
+	    ((can-merge? (stream-car S1) (stream-car S2))
+	     (iter
+	      (stream-cdr S1)
+	      (stream-cdr S2)
+	      (cons-stream (merge-frames (stream-car S1) (stream-car S2)) result-list)))
+	    (else
+	     (iter
+	      (stream-cdr S1)
+	      (stream-cdr S2)
+	      (cons-stream S1 (cons-stream S2 result-list)))))
+      )
+
+    (iter frame-stream-one frame-stream-two the-empty-stream)
+
+    )
+
+  (define (merge-all-frame-streams current-frame-stream frame-streams)
+    (cond ((null? current-frame-stream)
+	   (merge-all-frame-streams (car frame-streams)
+				    (cdr frame-streams)))
+	  ((null? frame-streams) current-frame-stream)
+	  (else
+	   (merge-all-frame-streams
+	    (merge-frame-streams current-frame-stream (car frame-streams))
+	    (cdr frame-streams))))
+    )
+
+  (let ((all-frame-streams
+	 (map
+	  (lambda (conjunct)
+	    (qeval conjunct frame-stream))
+	  conjuncts)))
+
+    (merge-all-frame-streams '() all-frame-streams))
+  )
 
 ;;(put 'and 'qeval conjoin)
 
