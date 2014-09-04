@@ -426,7 +426,7 @@
 ; 4.71
 ; ========================================================================
 ;; Both implementations will recurse indefinitely but the book's will let
-;; you see the output from each iteration since (apply-rule) gets 
+;; you see the output from each iteration since (apply-rule) gets
 ;; evaluated as part of (display-stream).
 
 ;; Here is the output from using the book's implementation:
@@ -514,3 +514,20 @@ Assertion added to data base.
 (and (salary (scrooge eben) 75000) (job (scrooge eben) (accounting chief accountant)))
 (and (salary (cratchet robert) 18000) (job (cratchet robert) (accounting scrivener)))
 (and (salary (aull dewitt) 25000) (job (aull dewitt) (administration secretary)))
+
+; 4.77
+; ========================================================================
+We could change (negate) and (lisp-value) to first check if all of the
+variables are bound in their frame-stream before applying themselves.
+If not, they return a (delay)'ed version of their application instead of the
+usual stream.  (so you'd get (delay (not (job ?x (computer programmer)))))
+
+(qeval) would have to be changed so that it doesn't blindly iterate
+through the entire query at once.  Instead, it would peek at the type of
+each query.  If a non-(not) or non-(lisp-value) query is successfully resolved,
+(qeval) would scan back through the frame-stream to see if any of the
+(not) or (lisp-value) clauses could be applied.
+
+This would be stateful as hell!  You'd have to keep track of if you'd
+seen any unresolved (not) or (lisp-values) and you would have to modify
+your list of queries as well as the frame-stream.
