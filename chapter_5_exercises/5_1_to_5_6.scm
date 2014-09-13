@@ -60,3 +60,19 @@
 |        |
 +--------+
 "
+
+; 5.2
+; ========================================================================
+(controller
+ (assign pc 1)
+ (assign counter 1)
+
+ test-counter
+   (test (op >) (reg counter) (reg n))
+   (branch (label factorial-done))
+   (assign pc (op *) (reg product) (reg counter))
+   (assign cp1 (op +) (reg counter) (constant 1))
+   (assign product (reg pc))
+   (assign counter (reg cp1))
+   (goto (label test-counter))
+ factorial-done)
