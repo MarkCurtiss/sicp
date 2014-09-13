@@ -167,3 +167,177 @@
 
 ;; I did not draw diagrams for these.  It was easier to just write the
 ;; controller instruction sequence.
+
+; 5.5
+; ========================================================================
+This is a stepthrough of what happens when you call (factorial 2):
+
+before we start fact-loop:
+  continue: label fact-done
+  n: 2
+  val: ()
+  stack: ()
+
+after we've executed fact-loop but before we (goto (label fact-loop)):
+  continue: label after-fact
+  n: 1
+  val: ()
+  stack:
+    continue: label fact-done
+    n: 2
+
+after we (goto (label fact-loop)) and we (test) n against 1:
+  continue: label after-fact
+  n: 1
+  val: ()
+  stack:
+    continue: label fact-done
+    n: 2
+
+since n == 1, we (branch) to label base-case and assign a val:
+  continue: label after-fact
+  n: 1
+  val: 1
+  stack:
+    continue: label fact-done
+    n: 2
+
+then we (goto (reg continue)) which resolves to after-fact.  we also restore n and continue:
+  continue: fact-done
+  n: 2
+  val: 1
+  stack: ()
+
+now multiply n*val and assign to val, then (goto (reg continue)) which dumps us at fact-done.
+  continue: fact-done
+  n: 2
+  val: 2
+  stack: ()
+
+
+This is a stepthrough of what happens if you call (fib 3)
+
+before we start fib-loop:
+  continue: label fib-done
+  n: 3
+  val: ()
+  stack: ()
+
+our test against n < 2 fails and we prepare to (goto fib-loop):
+  continue: label after-fib-n-1
+  n: 2
+  val: ()
+  stack:
+    continue: label fib-done
+    n: 3
+
+our test against n < 2 fails and we prepare to (goto fib-loop) again:
+  continue: label after-fib-n-1
+  n: 1
+  val: ()
+  stack:
+    continue: label after-fib-n-1, label fib-done
+    n: 2, 3
+
+in (fib-loop) our test against n < 2 passes and we (branch) to immediate-answer and assign a val:
+  continue: label after-fib-n-1
+  n: 1
+  val: 1
+  stack:
+    continue: label after-fib-n-1, label fib-done
+    n: 2, 3
+
+we then (goto after-fib-n-1) and restore n and continue:
+  continue: label after-fib-n-1
+  n: 2
+  val: 1
+  stack:
+    continue: label fib-done
+    n: 3
+
+we then assign and save continue, n, and val before we (goto fib-loop):
+  continue: label after-fib-n-2
+  n: 0
+  val: 1
+  stack:
+    continue: label after-fib-n-1, label fib-done
+    n: 3
+    val: 1
+
+in fib-loop, test n < 2 succeeds and we (goto immediate-answer) and assign val to n:
+  continue: label after-fib-n-2
+  n: 0
+  val: 0
+  stack:
+    continue: label after-fib-n-1, label fib-done
+    n: 3
+    val: 1
+
+then we (goto after-fib-n-2) and assign n to val:
+  continue: label after-fib-n-2
+  n: 0
+  val: 0
+  stack:
+    continue: label after-fib-n-1, label fib-done
+    n: 3
+    val: 1
+
+we restore val and continue:
+  continue: label after-fib-n-1
+  n: 0
+  val: 1
+  stack:
+    continue: label fib-done
+    n: 3
+
+then we assign to val (+ val n) and (goto continue)
+  continue: label after-fib-n-1
+  n: 0
+  val: 1
+  stack:
+    continue: label fib-done
+    n: 3
+
+in after-fib-n-1 we restore n and continue:
+  continue: label fib-done
+  n: 3
+  val: 1
+  stack: ()
+
+we assign and save continue, n, and val:
+  continue: label after-fib-n-2
+  n: 1
+  val: 1
+  stack:
+    continue: label fib-done
+    val: 1
+
+we (goto fib-loop).  our test of n < 2 passes so we branch to immediate-answer and assign val:
+  continue: label after-fib-n-2
+  n: 1
+  val: 1
+  stack:
+    continue: label fib-done
+    val: 1
+
+we then (goto continue).  in (after-fib-n-2) we assign val to n:
+  continue: label after-fib-n-2
+  n: 1
+  val: 1
+  stack:
+    continue: label fib-done
+    val: 1
+
+we then restore val and continue:
+  continue: label fib-done
+  n: 1
+  val: 1
+  stack: ()
+
+we assign val (+ val n):
+  continue: label fib-done
+  n: 1
+  val: 2
+  stack: ()
+
+and jump to (reg continue) which lands us at fib-done with a value of 2.
