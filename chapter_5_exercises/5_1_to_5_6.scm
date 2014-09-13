@@ -79,6 +79,7 @@
 
 ; 5.3
 ; ========================================================================
+;; Assuming primitive operations.
 (controller
  (assign guess 1.0)
 
@@ -88,3 +89,27 @@
    (assign guess (op improve) (reg guess))
    (goto (label test-guess))
  sqrt-done)
+
+;; Expanding the primitive operations.
+(controller
+ (assign guess 1.0)
+ (assign x (op read))
+
+ test-guess
+;; good-enough?
+   (assign sqrguess (op square) (reg guess))
+   (assign sqrminusx (op -) (reg sqrguess) (reg x))
+   (assign absresult (op abs) (reg sqrminusx))
+   (test (op <) (reg absresult) (constant 0.001))
+   (branch (label sqrt-done))
+;; improve
+   (assign xdivguess (op /) (reg x) (reg guess))
+   (assign avgguess (op avg) (reg xdivguess) (reg guess))
+   (assign guess (reg avgguess))
+   (goto (label test-guess))
+ sqrt-done)
+
+;; I drew diagrams for these but they are drawn in a pen on a notebook
+;; in front of me and I don't feel like drawing them in ASCII art.
+;; I guess I can show my study-group colleagues the drawing when we
+;; meet up.
