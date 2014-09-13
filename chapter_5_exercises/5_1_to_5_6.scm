@@ -113,3 +113,57 @@
 ;; in front of me and I don't feel like drawing them in ASCII art.
 ;; I guess I can show my study-group colleagues the drawing when we
 ;; meet up.
+
+; 5.4
+; ========================================================================
+;; a.
+;; (define (expt b n)
+;;   (if (= n 0)
+;;       1
+;;       (* b (expt b (- n 1)))))
+
+(controller
+ (assign b (op read))
+ (assign n (op read))
+ (assign continue (label expt-done))
+
+ expt-loop
+   (test (op =) (reg n) (const 0))
+   (branch (label base-case))
+   (save continue)
+   (save n)
+   (assign n (op -) (reg n) (const 1))
+   (assign continue (label after-expt))
+   (goto (label expt-loop))
+ after-expt
+   (restore n)
+   (restore continue)
+   (assign val (op *) (reg b) (reg val))
+ base-case
+   (assign val (const 1))
+   (goto (reg continue))
+ expt-done)
+
+;; b.
+;; (define (expt b n)
+;;   (define (expt-iter counter product)
+;;     (if (= counter 0)
+;;         product
+;;         (expt-iter (- counter 1) (* b product))))
+;;   (expt-iter n 1))
+
+(controller
+ (assign b (op read))
+ (assign n (op read))
+ (assign product 1)
+
+ test-counter
+   (test (op =) (reg n) (const 0))
+   (branch (label expt-done))
+   (assign n (op -) (reg n) (const 1))
+   (assign product (op *) (reg b) (reg product))
+   (goto (label test-counter))
+ expt-done)
+
+;; I did not draw diagrams for these.  It was easier to just write the
+;; controller instruction sequence.
