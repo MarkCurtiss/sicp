@@ -64,7 +64,7 @@
 ; 5.2
 ; ========================================================================
 (controller
- (assign pc 1)
+ (assign product 1)
  (assign counter 1)
 
  test-counter
@@ -76,3 +76,15 @@
    (assign counter (reg cp1))
    (goto (label test-counter))
  factorial-done)
+
+; 5.3
+; ========================================================================
+(controller
+ (assign guess 1.0)
+
+ test-guess
+   (test (op good-enough?) (reg guess))
+   (branch (label sqrt-done))
+   (assign guess (op improve) (reg guess))
+   (goto (label test-guess))
+ sqrt-done)
