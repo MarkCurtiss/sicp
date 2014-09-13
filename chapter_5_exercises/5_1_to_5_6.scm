@@ -341,3 +341,8 @@ we assign val (+ val n):
   stack: ()
 
 and jump to (reg continue) which lands us at fib-done with a value of 2.
+
+; 5.6
+; ========================================================================
+In after-fib-n-1, we (restore) continue only to (save) it afterwards
+with no intermediate modifications.
