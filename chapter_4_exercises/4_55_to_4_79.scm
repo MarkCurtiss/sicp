@@ -573,3 +573,10 @@ try-again
 (job (? person) (accounting ? profession))
 
 ;;; Amb-query input:
+
+
+;; Oh I just saw that there is more to this problem.  Hmm.
+;; I don't get what difference they are driving at.  I guess the
+;; immediate thing that springs to mind is that the amb implementation
+;; doesn't immediately display the entire stream.  Thus if you had an infinite
+;; stream or an unbounded recursion you wouldn't realize it right away.
