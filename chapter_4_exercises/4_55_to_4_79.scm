@@ -531,3 +531,45 @@ each query.  If a non-(not) or non-(lisp-value) query is successfully resolved,
 This would be stateful as hell!  You'd have to keep track of if you'd
 seen any unresolved (not) or (lisp-values) and you would have to modify
 your list of queries as well as the frame-stream.
+
+; 4.78
+; ========================================================================
+;; See ambquery for my implementation.
+(load "ambquery.scm")
+(define the-global-environment (setup-environment))
+(initialize-data-base microshaft-data-base)
+(driver-loop)
+
+(job ?person (accounting . ?profession))
+try-again
+try-again
+
+;; Output:
+1 ]=>
+;Loading "ambquery.scm"... done
+;Value: amb-query-loaded
+
+1 ]=>
+;Value: the-global-environment
+
+1 ]=>
+;Value: done
+
+1 ]=>
+
+;;; Amb-query input:
+
+;;; Amb-query value:
+(job (cratchet robert) (accounting scrivener))
+
+;;; Amb-query input:
+
+;;; Amb-query value:
+(job (scrooge eben) (accounting chief accountant))
+
+;;; Amb-query input:
+
+;;; There are no more values of
+(job (? person) (accounting ? profession))
+
+;;; Amb-query input:
