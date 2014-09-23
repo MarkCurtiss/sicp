@@ -32,3 +32,10 @@
 ;; inside of (extract-labels):
 ;; (if (memq next-inst (map car labels))
 ;;   (error "Redundant label detected:" next-inst)
+
+; 5.9
+; ========================================================================
+;; See my changes to book_code/ch5-regsim.scm
+;; In (make-operation-exp):
+;; (if (list-search-positive (operation-exp-operands exp) label-exp?)
+;;     (error "Attempted to apply an operation to a label -- MAKE-OPERATION-EXP")

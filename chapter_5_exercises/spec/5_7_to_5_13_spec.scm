@@ -97,4 +97,24 @@
        (lambda () (make-ambiguous-machine))
        "Redundant label detected: here")
       ))
+
+  (it "can't apply operations to labels"
+    (lambda ()
+      (load "book_code/ch5-regsim.scm")
+
+      (define (make-invalid-machine)
+	(make-machine
+	 '(a)
+	 (list (list '* *))
+	 '(
+	   a-label
+	   (assign a (const 3))
+	   (assign a (op *) (reg a) (label a-label))
+	   done))
+	)
+
+      (assert-error
+       (lambda () (make-invalid-machine))
+       "Attempted to apply an operation to a label -- MAKE-OPERATION-EXP")
+      ))
   )

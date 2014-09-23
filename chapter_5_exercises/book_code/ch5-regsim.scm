@@ -378,13 +378,15 @@
 
 
 (define (make-operation-exp exp machine labels operations)
-  (let ((op (lookup-prim (operation-exp-op exp) operations))
-        (aprocs
-         (map (lambda (e)
-                (make-primitive-exp e machine labels))
-              (operation-exp-operands exp))))
-    (lambda ()
-      (apply op (map (lambda (p) (p)) aprocs)))))
+  (if (list-search-positive (operation-exp-operands exp) label-exp?)
+      (error "Attempted to apply an operation to a label -- MAKE-OPERATION-EXP")
+      (let ((op (lookup-prim (operation-exp-op exp) operations))
+	    (aprocs
+	     (map (lambda (e)
+		    (make-primitive-exp e machine labels))
+		  (operation-exp-operands exp))))
+	(lambda ()
+	  (apply op (map (lambda (p) (p)) aprocs))))))
 
 (define (operation-exp? exp)
   (and (pair? exp) (tagged-list? (car exp) 'op)))
