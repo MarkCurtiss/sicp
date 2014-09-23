@@ -71,4 +71,30 @@
 	(get-register-contents expt-machine 'product)
 	6561))
       ))
+
+  (it "throws an error if you have duplicate label names"
+    (lambda ()
+      (load "book_code/ch5-regsim.scm")
+
+      (define (make-ambiguous-machine)
+	(make-machine
+	 '(a)
+	 (list '())
+	 '(
+	   start
+	   (goto (label here))
+	   here
+	   (assign a (const 3))
+	   (goto (label there))
+	   here
+	   (assign a (const 4))
+	   (goto (label there))
+	   there
+	   ))
+	)
+
+      (assert-error
+       (lambda () (make-ambiguous-machine))
+       "Redundant label detected: here")
+      ))
   )
