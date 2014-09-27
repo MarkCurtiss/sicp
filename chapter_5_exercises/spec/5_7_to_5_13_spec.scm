@@ -150,3 +150,29 @@
 	6561))
       ))
   )
+
+(describe "named-stack register machine simulator"
+  (it "errors out if you try and restore a stack value to the wrong register"
+    (lambda ()
+      (load "named-stack-regsim.scm")
+
+      (define invalid-machine
+	(make-machine
+	 '(x y)
+	 (list ())
+	 '(
+	   a-label
+	   (assign x (const 4))
+	   (assign y (const 8))
+	   (save x)
+	   (save y)
+	   (restore x)
+	   done))
+	)
+
+      (assert-error
+       (lambda () (start invalid-machine))
+       "Attempted to restore the wrong stack value to a register: x"))
+    )
+  )
+
