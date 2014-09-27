@@ -39,3 +39,12 @@
 ;; In (make-operation-exp):
 ;; (if (list-search-positive (operation-exp-operands exp) label-exp?)
 ;;     (error "Attempted to apply an operation to a label -- MAKE-OPERATION-EXP")
+
+; 5.10
+; ========================================================================
+;; Nice try, SICP!  But once bitten, twice shy.  If I change the syntax
+;; for this evaluator we've built up I just now it is going to cause
+;; problems down the road: you'll ask me to do some other change that is
+;; incompatible with the new syntax.  Or you'll give me code to run that uses
+;; the existing syntax.  I'm going to make my changes to a separate interpreter
+;; defined in alternate-syntax-regsim.scm.  See the accompanying tests.

@@ -118,3 +118,35 @@
        "Attempted to apply an operation to a label -- MAKE-OPERATION-EXP")
       ))
   )
+
+(describe "Alternate syntax register machine simulator"
+  (it "uses alternative syntax"
+    (lambda ()
+      (load "alternate-syntax-regsim.scm")
+
+      (define expt-machine
+	(make-machine
+	 '(b n product)
+	 (list
+	  (list '= =)
+	  (list '- -)
+	  (list '* *))
+	 '((assign product (const 1))
+	  test-counter
+	  (test (operator =) (register n) (const 0))
+	  (jump-if-true (label expt-done))
+	  (assign n (operator -) (register n) (const 1))
+	  (assign product (operator *) (register b) (register product))
+	  (goto (label test-counter))
+	  expt-done)))
+
+      (set-register-contents! expt-machine 'b 9)
+      (set-register-contents! expt-machine 'n 4)
+      (start expt-machine)
+
+      (assert
+       (=
+	(get-register-contents expt-machine 'product)
+	6561))
+      ))
+  )
