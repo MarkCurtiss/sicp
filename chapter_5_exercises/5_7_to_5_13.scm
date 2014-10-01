@@ -112,3 +112,8 @@
 
 ;; c.
 ;; See multi-stack-register-machine.scm and the associated test.
+
+; 5.12
+; ========================================================================
+;; a.
+;; See reflective-register-machine.scm and its associated tests.
