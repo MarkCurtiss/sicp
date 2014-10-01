@@ -110,4 +110,5 @@
 ;; b.
 ;;Check out named-stack-regsim.scm as well as the associated test.
 
-
+;; c.
+;; See multi-stack-register-machine.scm and the associated test.

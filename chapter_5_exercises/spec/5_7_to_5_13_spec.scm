@@ -176,3 +176,43 @@
     )
   )
 
+(describe "separate stack register machine simulator"
+  (it "associates each register with its own stack"
+    (lambda ()
+      (load "multi-stack-register-machine.scm")
+
+      (define stacked-machine
+	(make-machine
+	 '(x y)
+	 (list ())
+	 '(
+	  start
+	   (perform (op initialize-stack))
+	   (assign x (const 4))
+	   (assign y (const 8))
+
+	   (save x)
+	   (save y)
+
+	   (assign x (const 16))
+	   (assign y (const 64))
+
+	   (restore x)
+	   (restore y)
+	  done))
+	)
+
+      (start stacked-machine)
+
+      (assert
+       (=
+	(get-register-contents stacked-machine 'x)
+	4))
+
+      (assert
+       (=
+	(get-register-contents stacked-machine 'y)
+	8))
+      ))
+  )
+
