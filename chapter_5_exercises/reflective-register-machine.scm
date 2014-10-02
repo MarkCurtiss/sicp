@@ -38,14 +38,14 @@
 	  (if (null? instructions)
 	      results
 	      (let ((next-instruction (car (car instructions))))
-	      (if (memv next-instruction results)
-		  (iter (cdr instructions) results)
-		  (iter (cdr instructions) (cons next-instruction results))))))
+		(iter (cdr instructions) (cons next-instruction results)))))
 
 	(sort
-	 (iter (map car the-instruction-sequence) '())
-	 symbol<?))
-
+	 (unique
+	  (iter (map car the-instruction-sequence) '())
+	 )
+	 symbol<?)
+	)
       (define (get-goto-register-set)
 	(define (iter gotos results)
 	  (if (null? gotos)
@@ -55,16 +55,27 @@
 		  (if (not (register-exp? destination))
 		      (iter (cdr gotos) results)
 		      (let ((register (register-exp-reg destination)))
-			(if (memv register results)
-			    (iter (cdr gotos) results)
-			    (iter (cdr gotos) (cons register results))
-		      )))))))
+			(iter (cdr gotos) (cons register results))
+		      ))))))
 	(sort
-	 (iter
-	  (filter
-	   (lambda (instruction) (eq? (car instruction) 'goto))
-	   (map car the-instruction-sequence))
-	  '())
+	 (unique
+	  (iter (filter goto-exp? (map car the-instruction-sequence)) '())
+	  )
+	 symbol<?)
+	)
+      (define (get-value-register-set)
+	(define (iter stack-operations results)
+	  (if (null? stack-operations)
+	      results
+	      (let ((next-register-operation (car stack-operations)))
+		(let ((register (stack-inst-reg-name next-register-operation)))
+		  (iter (cdr stack-operations) (cons register results)))))
+	  )
+
+	(sort
+	 (unique
+	  (iter (filter stack-operation? (map car the-instruction-sequence)) '())
+	  )
 	 symbol<?)
 	)
       (define (dispatch message)
@@ -81,14 +92,33 @@
               ((eq? message 'operations) the-ops)
 	      ((eq? message 'instruction-set) (get-instruction-set))
 	      ((eq? message 'goto-register-set) (get-goto-register-set))
+	      ((eq? message 'value-register-set) (get-value-register-set))
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
 (define (instruction-set machine)
   (machine 'instruction-set))
 
+(define (stack-operation? exp)
+  (or (eq? (car exp) 'save)
+      (eq? (car exp) 'restore)))
+
+(define (goto-exp? exp)
+  (eq? (car exp) 'goto))
+
 (define (goto-register-set machine)
   (machine 'goto-register-set))
 
+(define (value-register-set machine)
+  (machine 'value-register-set))
 
+(define (unique list)
+  (define (iter input results)
+    (if (null? input)
+	results
+	(let ((element (car input)))
+	  (if (memv element results)
+	      (iter (cdr input) results)
+	      (iter (cdr input) (cons element results))))))
 
+  (iter list '()))
