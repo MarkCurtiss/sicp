@@ -45,6 +45,28 @@
 	(sort
 	 (iter (map car the-instruction-sequence) '())
 	 symbol<?))
+
+      (define (get-goto-register-set)
+	(define (iter gotos results)
+	  (if (null? gotos)
+	      results
+	      (let ((next-goto (car gotos)))
+		(let ((destination (goto-dest next-goto)))
+		  (if (not (register-exp? destination))
+		      (iter (cdr gotos) results)
+		      (let ((register (register-exp-reg destination)))
+			(if (memv register results)
+			    (iter (cdr gotos) results)
+			    (iter (cdr gotos) (cons register results))
+		      )))))))
+	(sort
+	 (iter
+	  (filter
+	   (lambda (instruction) (eq? (car instruction) 'goto))
+	   (map car the-instruction-sequence))
+	  '())
+	 symbol<?)
+	)
       (define (dispatch message)
         (cond ((eq? message 'start)
                (set-contents! pc the-instruction-sequence)
@@ -58,11 +80,15 @@
               ((eq? message 'stack) stack)
               ((eq? message 'operations) the-ops)
 	      ((eq? message 'instruction-set) (get-instruction-set))
+	      ((eq? message 'goto-register-set) (get-goto-register-set))
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
 (define (instruction-set machine)
   (machine 'instruction-set))
+
+(define (goto-register-set machine)
+  (machine 'goto-register-set))
 
 
 
