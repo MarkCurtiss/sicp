@@ -78,6 +78,20 @@
 	  )
 	 symbol<?)
 	)
+      (define (get-register-assignment-sources register)
+	(define (iter assignment-operations results)
+	  (if (null? assignment-operations)
+	      results
+	      (let ((next-assignment-operation (car assignment-operations)))
+		(if (eq? (assign-reg-name next-assignment-operation) register)
+		    (iter (cdr assignment-operations) (cons (assign-value-exp next-assignment-operation) results))
+		    (iter (cdr assignment-operations) results))))
+	  )
+
+	(unique
+	 (iter (filter assignment-operation? (map car the-instruction-sequence)) '())
+	 )
+	)
       (define (dispatch message)
         (cond ((eq? message 'start)
                (set-contents! pc the-instruction-sequence)
@@ -93,6 +107,7 @@
 	      ((eq? message 'instruction-set) (get-instruction-set))
 	      ((eq? message 'goto-register-set) (get-goto-register-set))
 	      ((eq? message 'value-register-set) (get-value-register-set))
+	      ((eq? message 'register-assignment-sources) get-register-assignment-sources)
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
 
@@ -103,6 +118,9 @@
   (or (eq? (car exp) 'save)
       (eq? (car exp) 'restore)))
 
+(define (assignment-operation? exp)
+  (eq? (car exp) 'assign))
+
 (define (goto-exp? exp)
   (eq? (car exp) 'goto))
 
@@ -111,6 +129,9 @@
 
 (define (value-register-set machine)
   (machine 'value-register-set))
+
+(define (register-assignment-sources machine register)
+  ((machine 'register-assignment-sources) register))
 
 (define (unique list)
   (define (iter input results)

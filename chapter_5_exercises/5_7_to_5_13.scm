@@ -115,5 +115,5 @@
 
 ; 5.12
 ; ========================================================================
-;; a. b. c.
+;; a. b. c. d.
 ;; See reflective-register-machine.scm and its associated tests.
