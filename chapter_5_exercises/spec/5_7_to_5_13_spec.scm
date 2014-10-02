@@ -428,3 +428,34 @@
       ))
   )
 
+(describe "On-demand register machine"
+  (it "initializes register on-demand rather than defining them on initialization"
+    (lambda ()
+      (load "ondemand-regsim.scm")
+
+      (define expt-machine
+	(make-machine
+	 (list
+	  (list '= =)
+	  (list '- -)
+	  (list '* *))
+	 '((assign product (const 1))
+	  test-counter
+	  (test (op =) (reg n) (const 0))
+	  (branch (label expt-done))
+	  (assign n (op -) (reg n) (const 1))
+	  (assign product (op *) (reg b) (reg product))
+	  (goto (label test-counter))
+	  expt-done)))
+
+      (set-register-contents! expt-machine 'b 9)
+      (set-register-contents! expt-machine 'n 4)
+      (start expt-machine)
+
+      (assert
+       (=
+	(get-register-contents expt-machine 'product)
+	6561))
+      ))
+  )
+

@@ -117,3 +117,7 @@
 ; ========================================================================
 ;; a. b. c. d.
 ;; See reflective-register-machine.scm and its associated tests.
+
+; 5.13
+; ========================================================================
+;; See ondemand-regsim.scm and its associated test.
