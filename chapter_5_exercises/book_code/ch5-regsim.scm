@@ -109,7 +109,8 @@
   (let ((pc (make-register 'pc))
         (flag (make-register 'flag))
         (stack (make-stack))
-        (the-instruction-sequence '()))
+        (the-instruction-sequence '())
+	(instruction-count 0))
     (let ((the-ops
            (list (list 'initialize-stack
                        (lambda () (stack 'initialize)))
@@ -136,16 +137,19 @@
           (if (null? insts)
               'done
               (begin
+		(set! instruction-count (+ instruction-count 1))
                 ((instruction-execution-proc (car insts)))
                 (execute)))))
       (define (dispatch message)
         (cond ((eq? message 'start)
                (set-contents! pc the-instruction-sequence)
+	       (set! instruction-count 0)
                (execute))
               ((eq? message 'install-instruction-sequence)
                (lambda (seq) (set! the-instruction-sequence seq)))
               ((eq? message 'allocate-register) allocate-register)
               ((eq? message 'get-register) lookup-register)
+	      ((eq? message 'get-instruction-count) instruction-count)
               ((eq? message 'install-operations)
                (lambda (ops) (set! the-ops (append the-ops ops))))
               ((eq? message 'stack) stack)
@@ -166,6 +170,9 @@
 
 (define (get-register machine reg-name)
   ((machine 'get-register) reg-name))
+
+(define (get-instruction-count machine)
+  (machine 'get-instruction-count))
 
 (define (assemble controller-text machine)
   (extract-labels controller-text

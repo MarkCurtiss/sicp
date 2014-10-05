@@ -61,3 +61,9 @@
 
 ;; The stack pushes seem to grow by 2 for every increase in the value of N.
 ;; So stack_ops == 2*n - 2
+
+; 5.15
+; ========================================================================
+;; See tests, and my changes to book_code/ch5-regsim.scm
+;; The machine stores an instruction count that gets incremented during
+;; (execute) and reset during (start).

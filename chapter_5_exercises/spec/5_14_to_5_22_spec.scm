@@ -1,7 +1,7 @@
 (load "5_14_to_5_22.scm")
 
 (describe "Register machine simulator"
-  (it "counts the number of stack pushes to compute N!"
+  (it "tracks the number of instructions executed"
     (lambda ()
       (load "book_code/ch5-regsim.scm")
 
@@ -31,9 +31,15 @@
 	   (assign val (const 1))
 	   (goto (reg continue))
 	  fact-done
-	   (perform (op print-stack-statistics)))
+	   )
 	 ))
 
-      (set-register-contents! factorial-machine 'n 4)
+      (set-register-contents! factorial-machine 'n 1)
       (start factorial-machine)
+      (assert (= (get-instruction-count factorial-machine) 6))
+
+      (set-register-contents! factorial-machine 'n 6)
+      (start factorial-machine)
+      (assert (= (get-instruction-count factorial-machine) 61))
+      ))
   )
