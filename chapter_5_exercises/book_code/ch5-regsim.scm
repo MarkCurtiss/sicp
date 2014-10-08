@@ -110,7 +110,9 @@
         (flag (make-register 'flag))
         (stack (make-stack))
         (the-instruction-sequence '())
-	(instruction-count 0))
+	(instruction-count 0)
+	(trace-instructions? false)
+	)
     (let ((the-ops
            (list (list 'initialize-stack
                        (lambda () (stack 'initialize)))
@@ -137,6 +139,10 @@
           (if (null? insts)
               'done
               (begin
+		(if trace-instructions?
+		    (begin
+		      (newline)
+		      (display (car (car insts)))))
 		(set! instruction-count (+ instruction-count 1))
                 ((instruction-execution-proc (car insts)))
                 (execute)))))
@@ -150,6 +156,8 @@
               ((eq? message 'allocate-register) allocate-register)
               ((eq? message 'get-register) lookup-register)
 	      ((eq? message 'get-instruction-count) instruction-count)
+	      ((eq? message 'trace-on) (set! trace-instructions? true))
+	      ((eq? message 'trace-off) (set! trace-instructions? false))
               ((eq? message 'install-operations)
                (lambda (ops) (set! the-ops (append the-ops ops))))
               ((eq? message 'stack) stack)
@@ -167,6 +175,12 @@
 (define (set-register-contents! machine register-name value)
   (set-contents! (get-register machine register-name) value)
   'done)
+
+(define (enable-instruction-tracing machine)
+  (machine 'trace-on))
+
+(define (disable-instruction-tracing machine)
+  (machine 'trace-off))
 
 (define (get-register machine reg-name)
   ((machine 'get-register) reg-name))

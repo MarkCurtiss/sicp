@@ -67,3 +67,62 @@
 ;; See tests, and my changes to book_code/ch5-regsim.scm
 ;; The machine stores an instruction count that gets incremented during
 ;; (execute) and reset during (start).
+
+; 5.16
+; ========================================================================
+;; See my changes to ch5-regsim.scm
+;; I added the instruction tracing to (execute) in the machine.
+(load "book_code/ch5-regsim.scm")
+
+(define factorial-machine
+  (make-machine
+   '(n continue val)
+   (list
+    (list '= =)
+    (list '- -)
+    (list '* *))
+   '((perform (op initialize-stack))
+     (assign continue (label fact-done))
+    fact-loop
+     (test (op =) (reg n) (const 1))
+     (branch (label base-case))
+     (save continue)
+     (save n)
+     (assign n (op -) (reg n) (const 1))
+     (assign continue (label after-fact))
+     (goto (label fact-loop))
+    after-fact
+     (restore n)
+     (restore continue)
+     (assign val (op *) (reg n) (reg val))
+     (goto (reg continue))
+    base-case
+     (assign val (const 1))
+     (goto (reg continue))
+    fact-done
+   ))
+  )
+
+(set-register-contents! factorial-machine 'n 2)
+(enable-instruction-tracing factorial-machine)
+(start factorial-machine)
+
+;; 1 ]=>
+;; (perform (op initialize-stack))
+;; (assign continue (label fact-done))
+;; (test (op =) (reg n) (const 1))
+;; (branch (label base-case))
+;; (save continue)
+;; (save n)
+;; (assign n (op -) (reg n) (const 1))
+;; (assign continue (label after-fact))
+;; (goto (label fact-loop))
+;; (test (op =) (reg n) (const 1))
+;; (branch (label base-case))
+;; (assign val (const 1))
+;; (goto (reg continue))
+;; (restore n)
+;; (restore continue)
+;; (assign val (op *) (reg n) (reg val))
+;; (goto (reg continue))
+;Value: done
