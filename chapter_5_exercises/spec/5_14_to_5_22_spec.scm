@@ -42,4 +42,65 @@
       (start factorial-machine)
       (assert (= (get-instruction-count factorial-machine) 61))
       ))
+
+
+  (it "prints out every instruction that was executed"
+    (lambda ()
+      (load "book_code/ch5-regsim.scm")
+
+      (define factorial-machine
+	(make-machine
+	 '(n continue val)
+	 (list
+	  (list '= =)
+	  (list '- -)
+	  (list '* *))
+	 '((perform (op initialize-stack))
+	   (assign continue (label fact-done))
+	   fact-loop
+	   (test (op =) (reg n) (const 1))
+	   (branch (label base-case))
+	   (save continue)
+	   (save n)
+	   (assign n (op -) (reg n) (const 1))
+	   (assign continue (label after-fact))
+	   (goto (label fact-loop))
+	   after-fact
+	   (restore n)
+	   (restore continue)
+	   (assign val (op *) (reg n) (reg val))
+	   (goto (reg continue))
+	   base-case
+	   (assign val (const 1))
+	   (goto (reg continue))
+	   fact-done
+	   ))
+	)
+
+      (set-register-contents! factorial-machine 'n 2)
+      (enable-instruction-tracing factorial-machine)
+      (assert
+       (equal?
+	(with-output-to-string
+	  (lambda  () (start factorial-machine)))
+	"
+(perform (op initialize-stack))
+(assign continue (label fact-done))
+(test (op =) (reg n) (const 1))
+(branch (label base-case))
+(save continue)
+(save n)
+(assign n (op -) (reg n) (const 1))
+(assign continue (label after-fact))
+(goto (label fact-loop))
+(test (op =) (reg n) (const 1))
+(branch (label base-case))
+(assign val (const 1))
+(goto (reg continue))
+(restore n)
+(restore continue)
+(assign val (op *) (reg n) (reg val))
+(goto (reg continue))"
+       ))
+     ))
   )
