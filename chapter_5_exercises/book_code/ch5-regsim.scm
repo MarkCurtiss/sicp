@@ -134,17 +134,23 @@
           (if val
               (cadr val)
               (error "Unknown register:" name))))
+      (define (trace-instruction inst)
+	(if trace-instructions?
+	    (begin
+	      (newline)
+	      (if (label-exp? inst)
+		  (display (cdr inst))
+		  (display (car inst))))))
       (define (execute)
         (let ((insts (get-contents pc)))
           (if (null? insts)
               'done
               (begin
-		(if trace-instructions?
-		    (begin
-		      (newline)
-		      (display (car (car insts)))))
-		(set! instruction-count (+ instruction-count 1))
-                ((instruction-execution-proc (car insts)))
+		(trace-instruction (car insts))
+		(cond ((label-exp? (car insts)) (advance-pc pc))
+		      (else
+		       (set! instruction-count (+ instruction-count 1))
+		       ((instruction-execution-proc (car insts)))))
                 (execute)))))
       (define (dispatch message)
         (cond ((eq? message 'start)
@@ -203,7 +209,7 @@
 	   (if (symbol? next-inst)
 	       (if (memq next-inst (map car labels))
 		   (error "Redundant label detected:" next-inst)
-		   (receive insts
+		   (receive (cons (make-label next-inst) insts)
 			    (cons (make-label-entry next-inst
 						    insts)
 				  labels)))
@@ -223,7 +229,9 @@
         (make-execution-procedure
          (instruction-text inst) labels machine
          pc flag stack ops)))
-     insts)))
+     (filter
+      (lambda (instruction) (not (label-exp? instruction)))
+     insts))))
 
 (define (make-instruction text)
   (cons text '()))
@@ -236,6 +244,9 @@
 
 (define (set-instruction-execution-proc! inst proc)
   (set-cdr! inst proc))
+
+(define (make-label label-name)
+  (cons 'label label-name))
 
 (define (make-label-entry label-name insts)
   (cons label-name insts))
@@ -312,7 +323,7 @@
                (lookup-label labels (label-exp-label dest))))
           (lambda ()
             (if (get-contents flag)
-                (set-contents! pc insts)
+                (set-contents! pc (cons (make-label (label-exp-label dest)) insts))
                 (advance-pc pc))))
         (error "Bad BRANCH instruction -- ASSEMBLE" inst))))
 
@@ -326,7 +337,7 @@
            (let ((insts
                   (lookup-label labels
                                 (label-exp-label dest))))
-             (lambda () (set-contents! pc insts))))
+             (lambda () (set-contents! pc (cons (make-label (label-exp-label dest)) insts)))))
           ((register-exp? dest)
            (let ((reg
                   (get-register machine
@@ -377,7 +388,7 @@
          (let ((insts
                 (lookup-label labels
                               (label-exp-label exp))))
-           (lambda () insts)))
+           (lambda () (cons (make-label (label-exp-label exp))insts))))
         ((register-exp? exp)
          (let ((r (get-register machine
                                 (register-exp-reg exp))))

@@ -79,6 +79,7 @@
 
       (set-register-contents! factorial-machine 'n 2)
       (enable-instruction-tracing factorial-machine)
+
       (assert
        (equal?
 	(with-output-to-string
@@ -86,6 +87,7 @@
 	"
 (perform (op initialize-stack))
 (assign continue (label fact-done))
+fact-loop
 (test (op =) (reg n) (const 1))
 (branch (label base-case))
 (save continue)
@@ -93,14 +95,18 @@
 (assign n (op -) (reg n) (const 1))
 (assign continue (label after-fact))
 (goto (label fact-loop))
+fact-loop
 (test (op =) (reg n) (const 1))
 (branch (label base-case))
+base-case
 (assign val (const 1))
 (goto (reg continue))
+after-fact
 (restore n)
 (restore continue)
 (assign val (op *) (reg n) (reg val))
-(goto (reg continue))"
+(goto (reg continue))
+fact-done"
        ))
      ))
   )

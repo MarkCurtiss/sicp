@@ -72,3 +72,16 @@
 ; ========================================================================
 ;; See my changes to ch5-regsim.scm and the associated test.
 ;; I added the instruction tracing to (execute) in the machine.
+
+; 5.17
+; ========================================================================
+;; Okay I updated the existing test and the implementation for ch5-regsim.
+;; Man the implementation of this was so grafted on that I am considering
+;; creating a separate register machine just for this problem.  I 'feel'
+;; like it will wind up causing compatibility issues in the future.  I
+;; had to essentially manufacture a new instruction type that is only
+;; ever displayed but not executed, but inject it into the same instruction
+;; stream that the rest of the machine uses.
+
+;; Maybe a better way to do it would have been to actually change the label
+;; expression type to have a '() execution proc.
