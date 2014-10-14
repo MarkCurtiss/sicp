@@ -85,3 +85,8 @@
 
 ;; Maybe a better way to do it would have been to actually change the label
 ;; expression type to have a '() execution proc.
+
+; 5.18
+; ========================================================================
+;; See my changes to (make-register) in ch5-regsim.scm as well as the
+;; test "it can trace register assignments"

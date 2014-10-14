@@ -24,11 +24,23 @@
     machine))
 
 (define (make-register name)
-  (let ((contents '*unassigned*))
+  (let (
+	(contents '*unassigned*)
+	(enable-tracing? false)
+	)
     (define (dispatch message)
       (cond ((eq? message 'get) contents)
             ((eq? message 'set)
-             (lambda (value) (set! contents value)))
+             (lambda (value)
+	       (if enable-tracing?
+		   (begin
+		     (newline)
+		     (display (list "Register" name "is being assigned" value "from the previous value:" contents))
+		     ))
+	       (set! contents value)
+	       ))
+	    ((eq? message 'trace-on) (set! enable-tracing? true))
+	    ((eq? message 'trace-off) (set! enable-tracing? false))
             (else
              (error "Unknown request -- REGISTER" message))))
     dispatch))
@@ -190,6 +202,12 @@
 
 (define (get-register machine reg-name)
   ((machine 'get-register) reg-name))
+
+(define (enable-register-tracing register)
+  (register 'trace-on))
+
+(define (disable-register-tracing register)
+  (register 'trace-off))
 
 (define (get-instruction-count machine)
   (machine 'get-instruction-count))

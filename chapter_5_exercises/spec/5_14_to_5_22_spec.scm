@@ -109,4 +109,35 @@ after-fact
 fact-done"
        ))
      ))
+
+  (it "can trace register assignments"
+    (lambda ()
+      (load "book_code/ch5-regsim.scm")
+
+      (define register-machine
+	(make-machine
+	 '(traced untraced)
+	 '()
+	 '(
+	   a-label
+	   (assign traced (const 3))
+	   (assign untraced (const 5))
+
+	   (assign traced (const 8))
+	   )))
+
+      (enable-register-tracing (get-register register-machine 'traced))
+
+      (assert
+       (equal?
+	(with-output-to-string
+	  (lambda () (start register-machine)))
+	"
+(Register traced is being assigned 3 from the previous value: *unassigned*)
+(Register traced is being assigned 8 from the previous value: 3)"
+	  ))
+
+
+      ))
+
   )
