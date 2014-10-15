@@ -159,16 +159,51 @@
               'done
               (begin
 		(trace-instruction (car insts))
-		(cond ((label-exp? (car insts)) (advance-pc pc))
+		(cond ((label-exp? (car insts)) (advance-pc pc) (execute))
+		      ((debug-exp? (car insts)) (advance-pc pc) 'EXECUTION-HALTED)
 		      (else
 		       (set! instruction-count (+ instruction-count 1))
-		       ((instruction-execution-proc (car insts)))))
-                (execute)))))
+		       ((instruction-execution-proc (car insts)))
+		      (execute)))
+                ))))
+      (define (set-breakpoint label offset)
+	(define (make-new-instruction-sequence old-instructions new-instructions current-offset)
+	  (if (null? old-instructions)
+	      new-instructions
+	      (let ((instruction (car old-instructions)))
+		(cond ((and (label-exp? instruction) (eq? (cdr instruction) label))
+		       (make-new-instruction-sequence
+			(cdr old-instructions)
+			(cons instruction new-instructions)
+			(+ current-offset 1)))
+		      ((and (> current-offset 1) (< current-offset offset))
+		       (make-new-instruction-sequence
+			(cdr old-instructions)
+			(cons instruction new-instructions)
+			(+ current-offset 1)))
+		      ((= current-offset offset)
+		       (let ((debug-instruction (make-instruction '(debug))))
+			 (make-new-instruction-sequence
+			  (cdr old-instructions)
+			  (cons debug-instruction
+				(cons instruction new-instructions))
+			  (+ current-offset 1))))
+		      (else
+		       (make-new-instruction-sequence
+			(cdr old-instructions)
+			(cons instruction new-instructions)
+			1))))))
+
+	(let ((new-instruction-sequence (reverse (make-new-instruction-sequence the-instruction-sequence '() 1))))
+	  ((dispatch 'install-instruction-sequence) new-instruction-sequence)
+	  true)
+	)
       (define (dispatch message)
         (cond ((eq? message 'start)
                (set-contents! pc the-instruction-sequence)
 	       (set! instruction-count 0)
                (execute))
+	      ((eq? message 'proceed) (execute))
               ((eq? message 'install-instruction-sequence)
                (lambda (seq) (set! the-instruction-sequence seq)))
               ((eq? message 'allocate-register) allocate-register)
@@ -176,6 +211,7 @@
 	      ((eq? message 'get-instruction-count) instruction-count)
 	      ((eq? message 'trace-on) (set! trace-instructions? true))
 	      ((eq? message 'trace-off) (set! trace-instructions? false))
+	      ((eq? message 'set-breakpoint) set-breakpoint)
               ((eq? message 'install-operations)
                (lambda (ops) (set! the-ops (append the-ops ops))))
               ((eq? message 'stack) stack)
@@ -186,6 +222,9 @@
 
 (define (start machine)
   (machine 'start))
+
+(define (proceed-machine machine)
+  (machine 'proceed))
 
 (define (get-register-contents machine register-name)
   (get-contents (get-register machine register-name)))
@@ -211,6 +250,9 @@
 
 (define (get-instruction-count machine)
   (machine 'get-instruction-count))
+
+(define (set-breakpoint machine label offset)
+  ((machine 'set-breakpoint) label offset))
 
 (define (assemble controller-text machine)
   (extract-labels controller-text
@@ -423,6 +465,8 @@
 (define (constant-exp-value exp) (cadr exp))
 
 (define (label-exp? exp) (tagged-list? exp 'label))
+
+(define (debug-exp? exp) (eq? (car (car exp)) 'debug))
 
 (define (label-exp-label exp) (cadr exp))
 

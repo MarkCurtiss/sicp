@@ -90,3 +90,94 @@
 ; ========================================================================
 ;; See my changes to (make-register) in ch5-regsim.scm as well as the
 ;; test "it can trace register assignments"
+
+; 5.19
+; ========================================================================
+(load "book_code/ch5-regsim.scm")
+
+;; (define factorial-machine
+;;   (make-machine
+;;    '(n continue val)
+;;    (list
+;;     (list '= =)
+;;     (list '- -)
+;;     (list '* *))
+;;    '((perform (op initialize-stack))
+;;      (assign continue (label fact-done))
+;;     fact-loop
+;;      (test (op =) (reg n) (const 1))
+;;      (branch (label base-case))
+;;      (save continue)
+;;      (save n)
+;;      (assign n (op -) (reg n) (const 1))
+;;      (assign continue (label after-fact))
+;;      (goto (label fact-loop))
+;;     after-fact
+;;      (restore n)
+;;      (restore continue)
+;;      (assign val (op *) (reg n) (reg val))
+;;      (goto (reg continue))
+;;     base-case
+;;      (assign val (const 1))
+;;      (goto (reg continue))
+;;     fact-done
+;;    )))
+
+;; (set-register-contents! factorial-machine 'n 4)
+;; (set-breakpoint factorial-machine 'fact-loop 5)
+;; (enable-instruction-tracing factorial-machine)
+;; (start factorial-machine)
+;; ------OUTPUT------
+;; 1 ]=>
+;; (perform (op initialize-stack))
+;; (assign continue (label fact-done))
+;; fact-loop
+;; (test (op =) (reg n) (const 1))
+;; (branch (label base-case))
+;; (save continue)
+;; (save n)
+;; (debug)
+;; ;Value: execution-halted
+;; ------------------
+;; (set-register-contents! factorial-machine 'n 8)
+;; ;; 1 ]=>
+;; ;Value: done
+;; (proceed-machine factorial-machine)
+;; ---OUTPUT---
+;; 1 ]=>
+;; (assign n (op -) (reg n) (const 1))
+;; (assign continue (label after-fact))
+;; (goto (label fact-loop))
+;; fact-loop
+;; (test (op =) (reg n) (const 1))
+;; (branch (label base-case))
+;; (save continue)
+;; (save n)
+;; (assign n (op -) (reg n) (const 1))
+;; (assign continue (label after-fact))
+;; (goto (label fact-loop))
+;; fact-loop
+;; (test (op =) (reg n) (const 1))
+;; (branch (label base-case))
+;; (save continue)
+;; (save n)
+;; ....
+;; after-fact
+;; (restore n)
+;; (restore continue)
+;; (assign val (op *) (reg n) (reg val))
+;; (goto (reg continue))
+;; after-fact
+;; (restore n)
+;; (restore continue)
+;; (assign val (op *) (reg n) (reg val))
+;; (goto (reg continue))
+;; after-fact
+;; ...
+;; (assign val (op *) (reg n) (reg val))
+;; (goto (reg continue))
+;; fact-done
+;; ;Value: done
+;; (get-register-contents factorial-machine 'val)
+;; 1 ]=>
+;; ;Value: 20160
