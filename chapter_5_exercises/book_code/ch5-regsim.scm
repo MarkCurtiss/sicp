@@ -183,34 +183,17 @@
 	)
 
       (define (set-breakpoint label offset)
-	(define (make-new-instruction-sequence old-instructions new-instructions current-offset)
-	  (if (null? old-instructions)
-	      new-instructions
-	      (let ((instruction (car old-instructions)))
-		(cond ((and (label-exp? instruction) (eq? (cdr instruction) label))
-		       (make-new-instruction-sequence
-			(cdr old-instructions)
-			(cons instruction new-instructions)
-			(+ current-offset 1)))
-		      ((and (> current-offset 1) (< current-offset offset))
-		       (make-new-instruction-sequence
-			(cdr old-instructions)
-			(cons instruction new-instructions)
-			(+ current-offset 1)))
-		      ((= current-offset offset)
-		       (let ((debug-instruction (make-instruction '(debug))))
-			 (make-new-instruction-sequence
-			  (cdr old-instructions)
-			  (cons debug-instruction
-				(cons instruction new-instructions))
-			  (+ current-offset 1))))
-		      (else
-		       (make-new-instruction-sequence
-			(cdr old-instructions)
-			(cons instruction new-instructions)
-			1))))))
+	(define (make-new-instruction-sequence instructions index)
+	  (if (null? instructions)
+	      'LABEL-NOT-FOUND
+	      (let ((instruction (car instructions)))
+		(if (and (label-exp? instruction) (eq? (cdr instruction) label))
+		    (append (list-head the-instruction-sequence (+ index offset))
+			    (list (list (make-instruction 'debug)))
+			    (sublist the-instruction-sequence (+ index offset) (length the-instruction-sequence)))
+		    (make-new-instruction-sequence (cdr instructions) (+ 1 index))))))
 
-	(let ((new-instruction-sequence (reverse (make-new-instruction-sequence the-instruction-sequence '() 1))))
+	(let ((new-instruction-sequence (make-new-instruction-sequence the-instruction-sequence 0)))
 	  ((dispatch 'install-instruction-sequence) new-instruction-sequence)
 	  'BREAKPOINT-SET)
 	)
