@@ -93,9 +93,9 @@
 
 ; 5.19
 ; ========================================================================
-(load "book_code/ch5-regsim.scm")
+;; (load "book_code/ch5-regsim.scm")
 
-;; (define factorial-machine
+;; (define (make-factorial-machine)
 ;;   (make-machine
 ;;    '(n continue val)
 ;;    (list
@@ -122,6 +122,8 @@
 ;;      (goto (reg continue))
 ;;     fact-done
 ;;    )))
+
+;; (define factorial-machine (make-factorial-machine))
 
 ;; (set-register-contents! factorial-machine 'n 4)
 ;; (set-breakpoint factorial-machine 'fact-loop 5)
@@ -181,3 +183,43 @@
 ;; (get-register-contents factorial-machine 'val)
 ;; 1 ]=>
 ;; ;Value: 20160
+
+;; ;; There is a BUG in this implementation!  If the breakpoint is set after any
+;; ;; (goto) or (branch) statement it gets erased.  I think this is because of
+;; ;; of the modification of the instruction sequence that happens in gotos and
+;; ;; branches.
+
+;; (define factorial-machine (make-factorial-machine))
+;; (set-register-contents! factorial-machine 'n 4)
+;; (set-breakpoint factorial-machine 'fact-loop 5)
+;; (enable-instruction-tracing factorial-machine)
+;; (cancel-all-breakpoints factorial-machine)
+;; (start factorial-machine)
+;; ;;
+;; ;; (perform (op initialize-stack))
+;; ;; (assign continue (label fact-done))
+;; ;; fact-loop
+;; ;; (test (op =) (reg n) (const 1))
+;; ;; ...
+;; ;; etc etc.
+
+;; (load "book_code/ch5-regsim.scm")
+;; (define factorial-machine (make-factorial-machine))
+;; (set-register-contents! factorial-machine 'n 4)
+;; (set-breakpoint factorial-machine 'fact-loop 5)
+;; (enable-instruction-tracing factorial-machine)
+;; (cancel-breakpoint factorial-machine 'fact-loop 5)
+;; 1 ]=>
+;; ;Value: breakpoint-set
+;; (start factorial-machine)
+
+;; 1 ]=>
+;; (perform (op initialize-stack))
+;; (assign continue (label fact-done))
+;; fact-loop
+;; (test (op =) (reg n) (const 1))
+;; (branch (label base-case))
+;; (save continue)
+;; (save n)
+;; (assign n (op -) (reg n) (const 1))
+;;execution proceeds normally

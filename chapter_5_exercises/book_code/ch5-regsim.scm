@@ -166,6 +166,22 @@
 		       ((instruction-execution-proc (car insts)))
 		      (execute)))
                 ))))
+      (define (cancel-breakpoint label offset)
+	(define (remove-breakpoint instructions index)
+	  (if (null? instructions)
+	      'BREAKPOINT-NOT-FOUND
+	      (let ((instruction (car instructions)))
+		(if (and (label-exp? instruction) (eq? (cdr instruction) label))
+		    (append (list-head the-instruction-sequence (+ index offset))
+			    (sublist the-instruction-sequence (+ index offset 1) (length the-instruction-sequence)))
+		    (remove-breakpoint (cdr instructions) (+ 1 index))))))
+
+
+	(let ((new-instruction-sequence (remove-breakpoint the-instruction-sequence 0)))
+	  ((dispatch 'install-instruction-sequence) new-instruction-sequence)
+	  'BREAKPOINT-CLEARED)
+	)
+
       (define (set-breakpoint label offset)
 	(define (make-new-instruction-sequence old-instructions new-instructions current-offset)
 	  (if (null? old-instructions)
@@ -196,7 +212,7 @@
 
 	(let ((new-instruction-sequence (reverse (make-new-instruction-sequence the-instruction-sequence '() 1))))
 	  ((dispatch 'install-instruction-sequence) new-instruction-sequence)
-	  true)
+	  'BREAKPOINT-SET)
 	)
       (define (dispatch message)
         (cond ((eq? message 'start)
@@ -212,9 +228,14 @@
 	      ((eq? message 'trace-on) (set! trace-instructions? true))
 	      ((eq? message 'trace-off) (set! trace-instructions? false))
 	      ((eq? message 'set-breakpoint) set-breakpoint)
+	      ((eq? message 'cancel-breakpoint) cancel-breakpoint)
               ((eq? message 'install-operations)
                (lambda (ops) (set! the-ops (append the-ops ops))))
               ((eq? message 'stack) stack)
+	      ((eq? message 'clear-breakpoints)
+	       (lambda () (begin (set! the-instruction-sequence
+				       (remove debug-exp? the-instruction-sequence))
+				 'BREAKPOINTS-CLEARED)))
               ((eq? message 'operations) the-ops)
               (else (error "Unknown request -- MACHINE" message))))
       dispatch)))
@@ -253,6 +274,12 @@
 
 (define (set-breakpoint machine label offset)
   ((machine 'set-breakpoint) label offset))
+
+(define (cancel-all-breakpoints machine)
+  ((machine 'clear-breakpoints)))
+
+(define (cancel-breakpoint machine label offset)
+  ((machine 'cancel-breakpoint) label offset))
 
 (define (assemble controller-text machine)
   (extract-labels controller-text
@@ -466,7 +493,7 @@
 
 (define (label-exp? exp) (tagged-list? exp 'label))
 
-(define (debug-exp? exp) (eq? (car (car exp)) 'debug))
+(define (debug-exp? exp) (and (pair? (car exp)) (eq? (car (car exp)) 'debug)))
 
 (define (label-exp-label exp) (cadr exp))
 
