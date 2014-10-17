@@ -223,3 +223,15 @@
 ;; (save n)
 ;; (assign n (op -) (reg n) (const 1))
 ;;execution proceeds normally
+
+; 5.20
+; ========================================================================
+;; I drew a box and pointer diagram on my notebook.  I guess I will bring it
+;; to class next week.
+
+;; Here is the memory-vector representation.
+;;            1  | 2  | 3  | 4  | 5
+;; the-cars | p2 | n1 | p2 | n2 |
+;; the-cdrs | p3 | p4 | e0 | e0 |
+
+;; The free pointer will be pointed at p5.
