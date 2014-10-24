@@ -235,3 +235,62 @@
 ;; the-cdrs | p3 | p4 | e0 | e0 |
 
 ;; The free pointer will be pointed at p5.
+
+; 5.21
+; ========================================================================
+;; a. See the test "it can implement a recursive tree-leaf counter"
+
+;; b.
+;; This *should* work, but due to incompatibility issues with multi-stack-register-machine
+;; and book_code/ch5-regsim.scm, it fails to run.
+;; (load "multi-stack-register-machine.scm")
+
+;; (define (not-pair? x)
+;;   (not (pair? x)))
+
+;; (define iterative-leaf-counter
+;;   (make-machine
+;;    '(continue tree num-leaves)
+;;    (list
+;;     (list '+ +)
+;;     (list 'null? null?)
+;;     (list 'not-pair? not-pair?)
+;;     (list 'car car)
+;;     (list 'cdr cdr)
+;;     )
+;;    '(
+;;      (perform (op initialize-stack))
+;;      (assign continue (label count-done))
+;;      (assign num-leaves (const 0))
+
+;;      count-loop
+;;       (test (op null?) (reg tree))
+;;       (branch (label null))
+;;       (test (op not-pair?) (reg tree))
+;;       (branch (label not-pair))
+;;       (save continue)
+;;       (assign continue (label after-car))
+;;       (save tree)
+;;       (assign tree (op car) (reg tree))
+;;       (goto (label count-loop))
+
+;;      after-car
+;;       (restore continue)
+;;       (restore tree)
+;;       (assign tree (op cdr) (reg tree))
+;;       (goto (label count-loop))
+
+;;      not-pair
+;;       (assign num-leaves (op +) (reg num-leaves) (const 1))
+;;       (restore continue)
+;;       (goto (reg continue))
+
+;;      null
+;;       (goto (reg continue))
+;;       count-done)
+;; ))
+
+;; (define tree (cons (cons 1 2) (cons 3 4)))
+;; (set-register-contents! iterative-leaf-counter 'tree tree)
+
+;; (start iterative-leaf-counter)

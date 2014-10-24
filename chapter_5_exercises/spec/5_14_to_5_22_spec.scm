@@ -43,6 +43,63 @@
       (assert (= (get-instruction-count factorial-machine) 61))
       ))
 
+  (it "can implement a recursive tree-leaf counter"
+    (lambda ()
+      (load "book_code/ch5-regsim.scm")
+
+      (define (not-pair? x)
+	(not (pair? x)))
+
+      (define recursive-leaf-counter
+	(make-machine
+	 '(continue tree num-leaves)
+	 (list
+	  (list '+ +)
+	  (list 'null? null?)
+	  (list 'not-pair? not-pair?)
+	  (list 'car car)
+	  (list 'cdr cdr)
+	  )
+	 '((perform (op initialize-stack))
+	   (assign continue (label count-done))
+	  count-loop
+	   (test (op null?) (reg tree))
+	   (branch (label null-case))
+	   (test (op not-pair?) (reg tree))
+	   (branch (label not-pair))
+	   (save continue)
+	   (assign continue (label after-car))
+	   (save tree)
+	   (assign tree (op car) (reg tree))
+	   (goto (label count-loop))
+	  after-car
+	   (restore tree)
+	   (assign tree (op cdr) (reg tree))
+	   (assign continue (label after-cdr))
+	   (save num-leaves)
+	   (goto (label count-loop))
+	  after-cdr
+	   (assign tree (reg num-leaves))
+	   (restore num-leaves)
+	   (restore continue)
+	   (assign num-leaves (op +) (reg tree) (reg num-leaves))
+	   (goto (reg continue))
+	  null-case
+	   (assign num-leaves (const 0))
+	   (goto (reg continue))
+	  not-pair
+	   (assign num-leaves (const 1))
+	   (goto (reg continue))
+	   count-done)
+	 ))
+
+      (define tree (cons (cons 1 2) (cons 3 4)))
+      (set-register-contents! recursive-leaf-counter 'tree tree)
+      (start recursive-leaf-counter)
+      (assert (equal?
+	       (get-register-contents recursive-leaf-counter 'num-leaves)
+	       4))
+      ))
 
   (it "prints out every instruction that was executed"
     (lambda ()
