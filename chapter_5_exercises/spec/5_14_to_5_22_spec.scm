@@ -101,6 +101,64 @@
 	       4))
       ))
 
+  (it "can (append) two lists together"
+    (lambda ()
+      (load "book_code/ch5-regsim.scm")
+
+      (define append-machine
+	(make-machine
+	 '(head list-1 list-2 result-list)
+	 (list
+	  (list 'car car)
+	  (list 'cdr cdr)
+	  (list 'null? null?)
+	  (list 'cons cons)
+	  (list 'reverse reverse)
+	  )
+	 '((perform (op initialize-stack))
+	   (assign result-list (const ()))
+	   (assign head (op reverse) (reg list-1))   ; so we can build a proper
+	   (assign list-1 (op reverse) (reg list-2)) ; list by cons'ing onto
+	   (assign list-2 (reg head))		     ; the head and ending with '()
+	  copy-list-1
+	   (test (op null?) (reg list-1))
+	   (branch (label copy-list-2))
+	   (assign head (op car) (reg list-1))
+	   (test (op null?) (reg result-list))
+	   (branch (label start-result-list))
+	   (assign result-list
+		   (op cons) (reg head) (reg result-list))
+	   (assign list-1 (op cdr) (reg list-1))
+	   (goto (label copy-list-1))
+	  copy-list-2
+	   (test (op null?) (reg list-2))
+	   (branch (label done))
+	   (assign head (op car) (reg list-2))
+	   (assign result-list
+		   (op cons) (reg head) (reg result-list))
+	   (assign list-2 (op cdr) (reg list-2))
+	   (goto (label copy-list-2))
+	  start-result-list
+	   (assign result-list
+		   (op cons) (reg head) (const ()))
+	   (assign list-1 (op cdr) (reg list-1))
+	   (goto (label copy-list-1))
+	  done)
+	 ))
+
+      (define x '(1 2 3))
+      (define y '(4 5))
+
+      (set-register-contents! append-machine 'list-1 x)
+      (set-register-contents! append-machine 'list-2 y)
+
+      (start append-machine)
+
+      (assert (equal?
+	       (get-register-contents append-machine 'result-list)
+	       (list 1 2 3 4 5)))
+      ))
+
   (it "prints out every instruction that was executed"
     (lambda ()
       (load "book_code/ch5-regsim.scm")
@@ -114,7 +172,7 @@
 	  (list '* *))
 	 '((perform (op initialize-stack))
 	   (assign continue (label fact-done))
-	   fact-loop
+          fact-loop
 	   (test (op =) (reg n) (const 1))
 	   (branch (label base-case))
 	   (save continue)
@@ -122,16 +180,15 @@
 	   (assign n (op -) (reg n) (const 1))
 	   (assign continue (label after-fact))
 	   (goto (label fact-loop))
-	   after-fact
+          after-fact
 	   (restore n)
 	   (restore continue)
 	   (assign val (op *) (reg n) (reg val))
 	   (goto (reg continue))
-	   base-case
+          base-case
 	   (assign val (const 1))
 	   (goto (reg continue))
-	   fact-done
-	   ))
+          fact-done))
 	)
 
       (set-register-contents! factorial-machine 'n 2)

@@ -294,3 +294,8 @@
 ;; (set-register-contents! iterative-leaf-counter 'tree tree)
 
 ;; (start iterative-leaf-counter)
+
+; 5.22
+; ========================================================================
+; For (append), see the test "it can (append) two lists together".
+;
