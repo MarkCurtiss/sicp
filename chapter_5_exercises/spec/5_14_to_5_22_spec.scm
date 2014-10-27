@@ -159,6 +159,48 @@
 	       (list 1 2 3 4 5)))
       ))
 
+  (it "can (append!) a list onto another"
+    (lambda ()
+      (load "book_code/ch5-regsim.scm")
+
+      (define x '(1 2 3))
+      (define y '(4 5))
+
+      (define append-machine
+       (make-machine
+        '(list-1 list-2 tail next)
+        (list
+         (list 'car car)
+         (list 'cdr cdr)
+         (list 'null? null?)
+         (list 'set-cdr! set-cdr!)
+         )
+        '((perform (op initialize-stack))
+          (assign tail (op car) (reg list-1))
+          (assign next (op cdr) (reg list-1))
+         find-tail
+          (test (op null?) (reg next))
+          (branch (label append-list))
+          (assign tail (reg next))
+          (assign next (op cdr) (reg next))
+          (goto (label find-tail))
+         append-list
+          (perform (op set-cdr!) (reg tail) (reg list-2))
+         done)
+        ))
+
+      (set-register-contents! append-machine 'list-1 x)
+      (set-register-contents! append-machine 'list-2 y)
+
+      (start append-machine)
+
+      (assert (equal?
+              (get-register-contents append-machine 'list-1)
+              (list 1 2 3 4 5)))
+      ))
+
+
+
   (it "prints out every instruction that was executed"
     (lambda ()
       (load "book_code/ch5-regsim.scm")

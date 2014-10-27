@@ -298,4 +298,4 @@
 ; 5.22
 ; ========================================================================
 ; For (append), see the test "it can (append) two lists together".
-;
+; For (append!), see the test "it can (append!) a list onto one another".
