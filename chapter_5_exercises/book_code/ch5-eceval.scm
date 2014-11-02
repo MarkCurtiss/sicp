@@ -42,6 +42,8 @@
    (list 'lambda-parameters lambda-parameters)
    (list 'lambda-body lambda-body)
    (list 'if? if?)
+   (list 'cond? cond?)
+   (list 'cond->if cond->if)
    (list 'if-predicate if-predicate)
    (list 'if-consequent if-consequent)
    (list 'if-alternative if-alternative)
@@ -129,6 +131,8 @@ eval-dispatch
   (branch (label ev-definition))
   (test (op if?) (reg exp))
   (branch (label ev-if))
+  (test (op cond?) (reg exp))
+  (branch (label ev-cond))
   (test (op lambda?) (reg exp))
   (branch (label ev-lambda))
   (test (op begin?) (reg exp))
@@ -240,6 +244,9 @@ ev-sequence-last-exp
 
 ;;;SECTION 5.4.3
 
+ev-cond
+  (assign exp (op cond->if) (reg exp))
+  (goto (label eval-dispatch))
 ev-if
   (save exp)
   (save env)
