@@ -44,6 +44,11 @@
    (list 'if? if?)
    (list 'cond? cond?)
    (list 'cond->if cond->if)
+   (list 'cond-predicate cond-predicate)
+   (list 'cond-else-clause? cond-else-clause?)
+   (list 'cond-actions cond-actions)
+   (list 'cond-clauses cond-clauses)
+   (list 'sequence->exp sequence->exp)
    (list 'if-predicate if-predicate)
    (list 'if-consequent if-consequent)
    (list 'if-alternative if-alternative)
@@ -200,7 +205,7 @@ ev-appl-accum-last-arg
 apply-dispatch
   (test (op primitive-procedure?) (reg proc))
   (branch (label primitive-apply))
-  (test (op compound-procedure?) (reg proc))  
+  (test (op compound-procedure?) (reg proc))
   (branch (label compound-apply))
   (goto (label unknown-procedure-type))
 
@@ -243,10 +248,42 @@ ev-sequence-last-exp
   (goto (label eval-dispatch))
 
 ;;;SECTION 5.4.3
-
 ev-cond
-  (assign exp (op cond->if) (reg exp))
+  (assign unev (op cond-clauses) (reg exp))
+  (assign val (const #f))
+  (save continue)
+cond-loop
+  (test (op no-operands?) (reg unev))
+  (branch (label cond-null))
+
+  (assign exp (op cond-predicate) (reg unev))
+  (perform (op user-print) (reg exp))
+  (test (op cond-else-clause?) (reg exp))
+  (branch (label cond-actions))
+
+  (save unev)
+  (save env)
+  (save exp)
+  (assign exp (op cond-predicate) (reg exp))
+  (assign continue (label cond-decide))
   (goto (label eval-dispatch))
+cond-decide
+  (restore exp)
+  (restore env)
+  (restore unev)
+
+  (test (op true?) (reg val))
+  (branch (label cond-actions))
+
+  (assign unev (op cond-clauses) (reg unev))
+  (goto (label cond-loop))
+cond-actions
+  (assign unev (op cond-actions) (reg exp))
+  (goto (label ev-sequence))
+cond-null
+  (assign val (const ()))
+  (goto (reg continue))
+
 ev-if
   (save exp)
   (save env)
