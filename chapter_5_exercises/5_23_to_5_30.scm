@@ -110,3 +110,45 @@ ok
 
 ; a.  The maximum depth is 10.
 ; b. Total pushes = 64 + 35*(n - 1)
+
+; 5.27
+; ========================================================================
+(load "book_code/load-eceval.scm")
+(define the-global-environment (setup-environment))
+(start eceval)
+
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* (factorial (- n 1)) n)))
+
+;; EC-Eval input:
+;; (factorial 3)
+
+;; (total-pushes = 80 maximum-depth = 18)
+;; EC-Eval value:
+;; 6
+
+;; EC-Eval input:
+;; (factorial 4)
+
+;; (total-pushes = 112 maximum-depth = 23)
+;; EC-Eval value:
+;; 24
+
+;; EC-Eval input:
+;; (factorial 5)
+
+;; (total-pushes = 144 maximum-depth = 28)
+;; EC-Eval value:
+;; 120
+
+;; EC-Eval input:
+;; (factorial 6)
+
+;; (total-pushes = 176 maximum-depth = 33)
+;; EC-Eval value:
+;; 720
+
+;; Maximum depth = 8 + 5*(n-1)
+;; Total pushes = 16 * (2*n -1)
