@@ -61,3 +61,52 @@ ok
 
 ;;; EC-Eval value:
 ;; 7
+
+; 5.25
+; ========================================================================
+;; No!
+
+; 5.26
+; ========================================================================
+(load "book_code/load-eceval.scm")
+(define the-global-environment (setup-environment))
+(start eceval)
+
+(define (factorial n)
+  (define (iter product counter)
+    (if (> counter n)
+        product
+        (iter (* counter product)
+              (+ counter 1))))
+  (iter 1 1))
+
+;;  EC-Eval input:
+;; (factorial 3)
+
+;; (total-pushes = 134 maximum-depth = 10)
+;;  EC-Eval value:
+;; 6
+
+;;  EC-Eval input:
+;; (factorial 4)
+
+;; (total-pushes = 169 maximum-depth = 10)
+;;  EC-Eval value:
+;; 24
+
+;;  EC-Eval input:
+;; (factorial 5)
+
+;; (total-pushes = 204 maximum-depth = 10)
+;;  EC-Eval value:
+;; 120
+
+;;  EC-Eval input:
+;; (factorial 6)
+
+;; (total-pushes = 239 maximum-depth = 10)
+;;  EC-Eval value:
+;; 720
+
+; a.  The maximum depth is 10.
+; b. Total pushes = 64 + 35*(n - 1)
