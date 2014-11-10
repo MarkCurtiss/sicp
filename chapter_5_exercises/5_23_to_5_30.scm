@@ -289,8 +289,26 @@ ok
 ;; s(4) = s(3) + s(2) + k == 240
 ;; s(4) = 128 + 72 + k == 240
 ;; k == 40
-;; s(3) = s(2) + s(1) + 40
-;; s(1) = s(3) - s(2) - 40
-;; s(1) = 16
-;; 16 = a fib(2) + b
-;; 72 = a fib(3) + b
+
+;; We know that s(1) is 16
+;; and s(n) = a*fib(n+1) + b, so. . .
+;; s(1) = a * fib(2) + b
+;; 16 = a * fib(2) + b
+;; 16 = a * 1 + b
+;; 16 = a + b
+
+;; s(2) = a * fib(3) + b
+;; 72 = a * 2 + b
+;; 72 = 2a + b
+
+;; Now we get to solve simultaneous equations!
+;; 72 - 16 = 2a - a + b - b
+;; 72 - 16 == a
+;; 56 == a
+
+;; Plug that back into s(1) and we get
+;; 16 = 56*1 + b
+;; -40 = b
+
+;; Total pushes is:
+;; s(n) = 56*fib(n+1) - 40
