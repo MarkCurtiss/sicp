@@ -214,7 +214,7 @@ ok
 ;; 720
 
 ;; The maximum depth is 14 + 3n
-;; The maximum pushes is 33 + 37n
+;; The total pushes is 33 + 37n
 
 (define (factorial n)
   (if (= n 1)
@@ -243,4 +243,54 @@ ok
 ;; 6
 
 ;; The maximum depth is 3 + 8n
-;; The maximum pushes is -16 + 34n
+;; The total pushes is -16 + 34n
+
+; 5.29
+; ========================================================================
+(load "book_code/load-eceval.scm")
+(define the-global-environment (setup-environment))
+(start eceval)
+
+(define (fib n)
+  (if (< n 2)
+      n
+      (+ (fib (- n 1)) (fib (- n 2)))))
+
+;; EC-Eval input:
+;; (fib 2)
+
+;; (total-pushes = 72 maximum-depth = 13)
+;; EC-Eval value:
+;; 1
+
+;; EC-Eval input:
+;; (fib 3)
+
+;; (total-pushes = 128 maximum-depth = 18)
+;; EC-Eval value:
+;; 2
+
+;; EC-Eval input:
+;; (fib 4)
+
+;; (total-pushes = 240 maximum-depth = 23)
+;; EC-Eval value:
+;; 3
+
+;; EC-Eval input:
+;; (fib 1)
+
+;; (total-pushes = 16 maximum-depth = 8)
+;; EC-Eval value:
+;; 1
+
+;; a. The maximum depth is 5n + 3
+;; b. The total pushes is. . .
+;; s(4) = s(3) + s(2) + k == 240
+;; s(4) = 128 + 72 + k == 240
+;; k == 40
+;; s(3) = s(2) + s(1) + 40
+;; s(1) = s(3) - s(2) - 40
+;; s(1) = 16
+;; 16 = a fib(2) + b
+;; 72 = a fib(3) + b
