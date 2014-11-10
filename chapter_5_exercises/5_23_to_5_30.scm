@@ -152,3 +152,95 @@ ok
 
 ;; Maximum depth = 8 + 5*(n-1)
 ;; Total pushes = 16 * (2*n -1)
+
+; 5.28
+; ========================================================================
+;; Replace the ev-sequence code with this:
+;; ev-sequence
+;;   (test (op no-more-exps?) (reg unev))
+;;   (branch (label ev-sequence-end))
+;;   (assign exp (op first-exp) (reg unev))
+;;   (save unev)
+;;   (save env)
+;;   (assign continue (label ev-sequence-continue))
+;;   (goto (label eval-dispatch))
+;; ev-sequence-continue
+;;   (restore env)
+;;   (restore unev)
+;;   (assign unev (op rest-exps) (reg unev))
+;;   (goto (label ev-sequence))
+;; ev-sequence-end
+;;   (restore continue)
+;;   (goto (reg continue))
+
+(load "book_code/load-eceval.scm")
+(define the-global-environment (setup-environment))
+(start eceval)
+
+(define (factorial n)
+  (define (iter product counter)
+    (if (> counter n)
+        product
+        (iter (* counter product)
+              (+ counter 1))))
+  (iter 1 1))
+
+;; EC-Eval input:
+;; (factorial 3)
+
+;; (total-pushes = 144 maximum-depth = 23)
+;; EC-Eval value:
+;; 6
+
+;; EC-Eval input:
+;; (factorial 4)
+
+;; (total-pushes = 181 maximum-depth = 26)
+;; EC-Eval value:
+;; 24
+
+;; EC-Eval input:
+;; (factorial 5)
+
+;; (total-pushes = 218 maximum-depth = 29)
+;; EC-Eval value:
+;; 120
+
+;; EC-Eval input:
+;; (factorial 6)
+
+;; (total-pushes = 255 maximum-depth = 32)
+;; EC-Eval value:
+;; 720
+
+;; The maximum depth is 14 + 3n
+;; The maximum pushes is 33 + 37n
+
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* (factorial (- n 1)) n)))
+
+;; EC-Eval input:
+;; (factorial 1)
+
+;; (total-pushes = 18 maximum-depth = 11)
+;; EC-Eval value:
+;; 1
+
+;; EC-Eval input:
+;; (factorial 2)
+
+;; (total-pushes = 52 maximum-depth = 19)
+;; EC-Eval value:
+;; 2
+
+;; EC-Eval input:
+;; (factorial 3)
+
+;; (total-pushes = 86 maximum-depth = 27)
+;; EC-Eval value:
+;; 6
+
+;; The maximum depth is 3 + 8n
+;; The maximum pushes is -16 + 34n
