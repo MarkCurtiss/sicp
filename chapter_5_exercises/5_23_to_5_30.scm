@@ -312,3 +312,55 @@ ok
 
 ;; Total pushes is:
 ;; s(n) = 56*fib(n+1) - 40
+
+; 5.30
+; ========================================================================
+;; a.
+;; add the following to ch5-eceval-support.scm
+;;(define (throw-exception type)
+;;  (list 'EXCEPTION: type)
+;;  )
+;;
+;;(define (exception? var)
+;;  (tagged-list? var 'exception:))
+;;
+;;Change lookup-variable-value:
+;;-        (error "Unbound variable" var)
+;;+       (throw-exception "Unbound variable")
+;;
+;;Add the following to ch5-eceval.scm
+;;    (list 'no-more-exps? no-more-exps?)	;for non-tail-recursive machine
+;;+   (list 'exception? exception?)
+;;
+;;Then in ev-variable:
+;; ev-variable
+;;   (assign val (op lookup-variable-value) (reg exp) (reg env))
+;;+  (test (op exception?) (reg val))
+;;+  (branch (label signal-error))
+;;   (goto (reg continue))
+
+(load "book_code/load-eceval.scm")
+(define the-global-environment (setup-environment))
+(start eceval)
+
+;; EC-Eval input:
+;; x
+;; (exception: Unbound variable)
+
+;; EC-Eval input:
+;; (+ x y)
+;; (exception: Unbound variable)
+
+;; EC-Eval input:
+;; (define x 3)
+
+;; (total-pushes = 3 maximum-depth = 3)
+;; EC-Eval value:
+;; ok
+
+;; EC-Eval input:
+;; x
+
+;; (total-pushes = 0 maximum-depth = 0)
+;; EC-Eval value:
+;; 3
