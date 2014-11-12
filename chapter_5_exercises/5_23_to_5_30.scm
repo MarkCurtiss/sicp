@@ -364,3 +364,73 @@ ok
 ;; (total-pushes = 0 maximum-depth = 0)
 ;; EC-Eval value:
 ;; 3
+
+;; b.
+;; Add the following to ch5-eceval-support.scm
+;;  (define primitive-procedures
+;; -  (list (list 'car car)
+;; +  (list (list 'car car pair?)
+
+;; (define (primitive-procedure-objects)
+;; -  (map (lambda (proc) (list 'primitive (cadr proc)))
+;; +  (map (lambda (proc)
+;; +        (if (= (length proc) 3)
+;; +            (list 'primitive (cadr proc) (caddr proc))
+;; +            (list 'primitive (cadr proc) #f)))
+
+;; -(define (apply-primitive-procedure proc args)
+;; -  (apply-in-underlying-scheme
+;; -   (primitive-implementation proc) args))
+;; +(define (primitive-safety-check proc)
+;; +  (caddr proc))
+;; +
+;; +(define (has-safety-check? proc)
+;; +  (true? (caddr proc)))
+
+;; +(define (is-safe-to-apply? proc args)
+;; +  (if (has-safety-check? proc)
+;; +      (apply-in-underlying-scheme (primitive-safety-check proc) args)
+;; +      true))
+;; +
+;; +(define (apply-primitive-procedure proc args)
+;; +  (if (is-safe-to-apply? proc args)
+;; +      (apply-in-underlying-scheme
+;; +       (primitive-implementation proc) args)
+;; +      (throw-exception "Invalid argument")))
+
+;; And also add this to ch5-eceval.scm
+;;  primitive-apply
+;;    (assign val (op apply-primitive-procedure)
+;;                (reg proc)
+;;                (reg argl))
+;; +  (test (op exception?) (reg val))
+;; +  (branch (label signal-error))
+
+(load "book_code/load-eceval.scm")
+(define the-global-environment (setup-environment))
+(start eceval)
+
+;; EC-Eval input:
+;; (define x (cons 3 4))
+
+;; (total-pushes = 11 maximum-depth = 8)
+;; EC-Eval value:
+;; ok
+
+;; EC-Eval input:
+;; (car x)
+
+;; (total-pushes = 5 maximum-depth = 3)
+;; EC-Eval value:
+;; 3
+
+;; EC-Eval input:
+;; (define y 5)
+
+;; (total-pushes = 3 maximum-depth = 3)
+;; EC-Eval value:
+;; ok
+
+;; EC-Eval input:
+;; (car y)
+;; (exception: Invalid argument)
