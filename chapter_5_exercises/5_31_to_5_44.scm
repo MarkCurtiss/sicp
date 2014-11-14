@@ -369,3 +369,14 @@ after-lambda1
 ;; As you'll see in false-branch9, every (save) is matched by a (restore) before
 ;; iter is called again in compiled-branch18.  This means our stack stays constant
 ;; with n, as we don't have to save any state from one procedure invocation to the next.
+
+; 5.35
+; ========================================================================
+;; I think it is
+(pp (compile
+	   '(define (f x)
+	      (+ x
+		 (g (+ x 2))))
+	   'val
+	   'next))
+;; I compared my output to the output in the book and they are the same !
