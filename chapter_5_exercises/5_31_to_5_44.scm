@@ -380,3 +380,15 @@ after-lambda1
 	   'val
 	   'next))
 ;; I compared my output to the output in the book and they are the same !
+
+
+; 5.36
+; ========================================================================
+;; Right to left.
+;; This happens in (construct-arglist) where it (reverses) the operands
+;; and then builds up the argument list thusly:
+;; (op cons) (reg val) (reg argl)
+
+;; I'm not going to modify the compiler!  In order to change the evaluation
+;; to left-to-right I could remove the (reverse) call in construct-arglist.
+;; It would make construct-arglist more efficient.
