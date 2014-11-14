@@ -245,3 +245,127 @@ after-lambda103
 ;; They have the same number of (save) statements but (factorial-alt) compiles
 ;; down to 11 statements while the original (factorial) compiles down to 14
 ;; statements.  So I'd expect (factorial-alt) to be more efficient.
+
+; 5.34
+; ========================================================================
+(pp
+ (compile '(define (factorial n)
+  (define (iter product counter)
+    (if (> counter n)
+        product
+        (iter (* counter product)
+              (+ counter 1))))
+  (iter 1 1))
+	  'val
+	  'next)
+ )
+
+((env)
+ (val)
+ ((assign val (op make-compiled-procedure) (label entry2) (reg env)) ;; compile entry2 into (factorial)
+  (goto (label after-lambda1))
+entry2
+  (assign env (op compiled-procedure-env) (reg proc))
+  (assign env (op extend-environment) (const (n)) (reg argl) (reg env))
+  (assign val (op make-compiled-procedure) (label entry7) (reg env)) ;; compile entry7 into (iter)
+  (goto (label after-lambda6))
+entry7  ;; (iter)
+  (assign env (op compiled-procedure-env) (reg proc))
+  (assign env (op extend-environment) (const (product counter)) (reg argl) (reg env))
+  (save continue)
+  (save env)
+  (assign proc (op lookup-variable-value) (const >) (reg env))  ;; assemble (> counter n) into proc and argl
+  (assign val (op lookup-variable-value) (const n) (reg env))
+  (assign argl (op list) (reg val))
+  (assign val (op lookup-variable-value) (const counter) (reg env))
+  (assign argl (op cons) (reg val) (reg argl))
+  (test (op primitive-procedure?) (reg proc)) ;; > is primitive so we'll jump to primitive-branch22
+  (branch (label primitive-branch22))
+compiled-branch21
+  (assign continue (label after-call20))
+  (assign val (op compiled-procedure-entry) (reg proc))
+  (goto (reg val))
+primitive-branch22
+  (assign val (op apply-primitive-procedure) (reg proc) (reg argl)) ;; Assign the result of (< counter n) to val and fall through
+after-call20
+  (restore env)
+  (restore continue)
+  (test (op false?) (reg val))  ; Is (< counter n) false?
+  (branch (label false-branch9))
+true-branch10  ;; This is where we return from (iter)
+  (assign val (op lookup-variable-value) (const product) (reg env))
+  (goto (reg continue))
+false-branch9 ;; If (< counter) is false, we have to compute (iter (* counter product) (+ 1 counter))
+  (assign proc (op lookup-variable-value) (const iter) (reg env)) ;; set up to compute (iter (+ 1 counter))
+  (save continue) ;; Gets restored in after-call11
+  (save proc) ;; Gets restored in after-call11
+  (save env) ;; Gets restored in after-call14
+  (assign proc (op lookup-variable-value) (const +) (reg env)) ;; set up to compute (+ 1 counter)
+  (assign val (const 1))
+  (assign argl (op list) (reg val))
+  (assign val (op lookup-variable-value) (const counter) (reg env))
+  (assign argl (op cons) (reg val) (reg argl))
+  (test (op primitive-procedure?) (reg proc)) ;; This will be true
+  (branch (label primitive-branch16))
+compiled-branch15
+  (assign continue (label after-call14))
+  (assign val (op compiled-procedure-entry) (reg proc))
+  (goto (reg val))
+primitive-branch16
+  (assign val (op apply-primitive-procedure) (reg proc) (reg argl)) ;; Apply (+ 1 counter) and fall through
+after-call14
+  (assign argl (op list) (reg val)) ;; Assign (+ 1 counter) to val
+  (restore env)
+  (save argl)
+  (assign proc (op lookup-variable-value) (const *) (reg env)) ;; Set up to compute (* counter product)
+  (assign val (op lookup-variable-value) (const product) (reg env))
+  (assign argl (op list) (reg val))
+  (assign val (op lookup-variable-value) (const counter) (reg env))
+  (assign argl (op cons) (reg val) (reg argl))
+  (test (op primitive-procedure?) (reg proc)) ;; This will be true
+  (branch (label primitive-branch13))
+compiled-branch12
+  (assign continue (label after-call11))
+  (assign val (op compiled-procedure-entry) (reg proc))
+  (goto (reg val))
+primitive-branch13
+  (assign val (op apply-primitive-procedure) (reg proc) (reg argl)) ;; Assign (* counter product) to val
+after-call11
+  (restore argl) ;; argl now contains the result of (+ 1 counter)
+  (assign argl (op cons) (reg val) (reg argl)) ;; argl now contains the result of (* counter product) and (+ 1 counter product)
+  (restore proc) ;; proc now contains iter
+  (restore continue) ;; continue now contains whatever it initially did when we entered the procedure
+  (test (op primitive-procedure?) (reg proc)) ;; This will be false
+  (branch (label primitive-branch19))
+compiled-branch18
+  (assign val (op compiled-procedure-entry) (reg proc)) ;;Run the code for (iter) and return to whatever continue points at
+  (goto (reg val))
+primitive-branch19
+  (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+  (goto (reg continue))
+after-call17
+after-if8
+after-lambda6 ;; This defines (iter) and calls (iter 1 1)
+  (perform (op define-variable!) (const iter) (reg val) (reg env))
+  (assign val (const ok))
+  (assign proc (op lookup-variable-value) (const iter) (reg env))
+  (assign val (const 1))
+  (assign argl (op list) (reg val))
+  (assign val (const 1))
+  (assign argl (op cons) (reg val) (reg argl))
+  (test (op primitive-procedure?) (reg proc)) ;; This will be false
+  (branch (label primitive-branch5))
+compiled-branch4
+  (assign val (op compiled-procedure-entry) (reg proc)) ;; Run (iter) and assign the result to val
+  (goto (reg val)) ;; This doesn't actually get executed
+primitive-branch5
+  (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+  (goto (reg continue))
+after-call3
+after-lambda1
+  (perform (op define-variable!) (const factorial) (reg val) (reg env))
+  (assign val (const ok))))
+
+;; As you'll see in false-branch9, every (save) is matched by a (restore) before
+;; iter is called again in compiled-branch18.  This means our stack stays constant
+;; with n, as we don't have to save any state from one procedure invocation to the next.
