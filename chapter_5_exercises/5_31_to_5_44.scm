@@ -392,3 +392,69 @@ after-lambda1
 ;; I'm not going to modify the compiler!  In order to change the evaluation
 ;; to left-to-right I could remove the (reverse) call in construct-arglist.
 ;; It would make construct-arglist more efficient.
+
+; 5.37
+; ========================================================================
+;; I commented out the following in (preserving)
+;; (if (and (needs-register? seq2 first-reg)
+;;          (modifies-register? seq1 first-reg))
+
+1 ]=> (pp (compile '(+ x 2) 'val 'next))
+((env continue)
+ (env proc argl continue val)
+ (
+  (save continue)
+  (save env)
+  (save continue)
+  (assign proc (op lookup-variable-value) (const +) (reg env))
+  (restore continue)
+  (restore env)
+  (restore continue)
+  (save continue)
+  (save proc)
+  (save env)
+  (save continue)
+  (assign val (const 2))
+  (restore continue)
+  (assign argl (op list) (reg val))
+  (restore env)
+  (save argl)
+  (save continue)
+  (assign val (op lookup-variable-value) (const x) (reg env))
+  (restore continue)
+  (restore argl)
+  (assign argl (op cons) (reg val) (reg argl))
+  (restore proc)
+  (restore continue)
+  (test (op primitive-procedure?) (reg proc))
+  (branch (label primitive-branch14))
+  compiled-branch13
+  (assign continue (label after-call12))
+  (assign val (op compiled-procedure-entry) (reg proc))
+  (goto (reg val))
+  primitive-branch14
+  (save continue)
+  (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+  (restore continue)
+  after-call12))
+
+;; All of those saves and restores are useless!
+;; Note how the smart version of (preserving) doesn't generate any of them
+1 ]=> (pp (compile '(+ x 2) 'val 'next))
+((env)
+ (env proc argl continue val)
+ (
+  (assign proc (op lookup-variable-value) (const +) (reg env))
+  (assign val (const 2))
+  (assign argl (op list) (reg val))
+  (assign val (op lookup-variable-value) (const x) (reg env))
+  (assign argl (op cons) (reg val) (reg argl))
+  (test (op primitive-procedure?) (reg proc))
+  (branch (label primitive-branch3))
+  compiled-branch2
+  (assign continue (label after-call1))
+  (assign val (op compiled-procedure-entry) (reg proc))
+  (goto (reg val))
+  primitive-branch3
+  (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+  after-call1))
