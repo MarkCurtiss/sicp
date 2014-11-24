@@ -458,3 +458,133 @@ after-lambda1
   primitive-branch3
   (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
   after-call1))
+
+; 5.38
+; ========================================================================
+;; a.
+(define (spread-arguments operands)
+  (define (iter instruction-list rest-operands)
+    (if (null? rest-operands)
+	instruction-list
+	(let ((first-operand (car rest-operands)))
+	  (cond ((null? instruction-list)
+		 (iter
+		  (compile first-operand 'arg2 'next)
+		  (cdr rest-operands)))
+		((< (length instruction-list) 2)
+		 (iter
+		  (append-instruction-sequences
+		   (compile first-operand 'arg1 'next)
+		   instruction-list)
+		  (cdr rest-operands)))
+		(else
+		 (iter
+		  (preserving '(arg1 arg2)
+			      (compile first-operand 'arg1 'next)
+			      instruction-list)
+		  (cdr rest-operands)))
+	  ))))
+  (iter '() operands))
+
+;; (pp (compile '(+ 5 (* 2 3)) 'val 'return))
+;; ((continue)
+;;  (arg1 arg2 target)
+;;  ((assign arg1 (const 3))
+;; (assign arg2 (const 2))
+;; (assign arg1 (op *) (reg arg1) (reg arg2))
+;; (assign arg2 (const 5))
+;; (assign val (op +) (reg arg1) (reg arg2))
+;; (goto (reg continue))))
+
+;; b.
+;; Add this to book_code/ch5-compiler.scm
+;;          ((cond? exp) (compile (cond->if exp) target linkage))
+;; +       ((open-coded-primitive? exp)
+;; +        (compile-open-coded-application exp target linkage))
+;;          ((application? exp)
+
+(define (open-coded-primitive? exp)
+  (memq (operator exp) '(+ - = *)))
+
+(define (compile-open-coded-application exp target linkage)
+  (let ((primitive (operator exp)))
+    (end-with-linkage
+     linkage
+     (preserving '(argl env)
+		 (spread-arguments (operands exp))
+		 (make-instruction-sequence '(arg1 arg2) '(target)
+					    `((assign ,target (op ,primitive) (reg arg1) (reg arg2))))))))
+
+
+(define (compile-equals exp target linkage)
+  (make-primitive-application '= exp target linkage))
+
+(define (compile-multiplication exp target linkage)
+  (make-primitive-application '* exp target linkage))
+
+(define (compile-subtraction exp target linkage)
+  (make-primitive-application '- exp target linkage))
+
+(define (compile-addition exp target linkage)
+  (make-primitive-application '+ exp target linkage))
+
+;; c.
+(pp
+ (compile
+ '(define (factorial n)
+    (if (= n 1)
+        1
+        (* (factorial (- n 1)) n)))
+ 'val
+ 'next)
+ )
+
+;; ((env)
+;;  (val)
+;;  ((assign val (op make-compiled-procedure) (label entry154) (reg env))
+;;   (goto (label after-lambda153))
+;;   entry154
+;;   (assign env (op compiled-procedure-env) (reg proc))
+;;   (assign env (op extend-environment) (const (n)) (reg argl) (reg env))
+;;   (assign arg1 (const 1))
+;;   (assign arg2 (op lookup-variable-value) (const n) (reg env))
+;;   (assign val (op =) (reg arg1) (reg arg2))
+;;   (test (op false?) (reg val))
+;;   (branch (label false-branch156))
+;;   true-branch157
+;;   (assign val (const 1))
+;;   (goto (reg continue))
+;;   false-branch156
+;;   (save continue)
+;;   (assign arg1 (op lookup-variable-value) (const n) (reg env))
+;;   (assign proc (op lookup-variable-value) (const factorial) (reg env))
+;;   (assign arg1 (const 1))
+;;   (assign arg2 (op lookup-variable-value) (const n) (reg env))
+;;   (assign val (op -) (reg arg1) (reg arg2))
+;;   (assign argl (op list) (reg val))
+;;   (test (op primitive-procedure?) (reg proc))
+;;   (branch (label primitive-branch160))
+;;   compiled-branch159
+;;   (assign continue (label proc-return161))
+;;   (assign val (op compiled-procedure-entry) (reg proc))
+;;   (goto (reg val))
+;;   proc-return161
+;;   (assign arg2 (reg val))
+;;   (goto (label after-call158))
+;;   primitive-branch160
+;;   (assign arg2 (op apply-primitive-procedure) (reg proc) (reg argl))
+;;   after-call158
+;;   (assign val (op *) (reg arg1) (reg arg2))
+;;   (restore continue)
+;;   (goto (reg continue))
+;;   after-if155
+;;   after-lambda153
+;;   (perform (op define-variable!) (const factorial) (reg val) (reg env))
+;;   (assign val (const ok))))
+
+;; This version is 42 lines instead of 81 - the open-coded primitives reduced
+;; the function by almost half.  It also generates some unneccesary instructions
+;; so it could be even more efficient if it were smarter.
+
+;;d.
+;; My version of (spread-arguments) already handles > 2 operands.
