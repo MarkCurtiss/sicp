@@ -591,29 +591,8 @@ after-lambda1
 
 ; 5.39
 ; ========================================================================
-(define (make-address frame-number displacement)
-  (cons frame-number displacement))
+;; I've moved the lexical-address-lookup to lexical-addressing-compiler.scm
 
-(define (address-frame-number address)
-  (car address))
+; 5.40
+; ========================================================================
 
-(define (address-displacement-number address)
-  (cdr address))
-
-(define (lexical-address-lookup address environment)
-  (let ((frame (list-ref environment (address-frame-number address))))
-    (let ((variable-value (list-ref (frame-values frame) (address-displacement-number address))))
-      (if (eq? variable-value '*unassigned)
-	  (error "Variable has no value")
-	  variable-value)))
-  )
-
-(define (lexical-address-set! address environment value)
-  (define (iter values current-index)
-    (if (= current-index (address-displacement-number address))
-	(set-car! values value)
-	(iter (cdr values) (+ current-index 1))))
-
-    (let ((frame (list-ref environment (address-frame-number address))))
-      (iter (frame-values frame) 0)
-      ))
