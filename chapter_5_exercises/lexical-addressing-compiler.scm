@@ -190,8 +190,11 @@
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body exp) 'val 'return env))))
-
+     (compile-sequence (lambda-body exp) 'val 'return
+		       (extend-environment
+			formals
+			(map (lambda (x) '()) formals)
+			env))))
 
 ;;;SECTION 5.5.3
 
