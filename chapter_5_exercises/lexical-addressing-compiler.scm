@@ -1,6 +1,33 @@
 (load "book_code/ch5-eceval-support.scm")
 (load "book_code/ch5-compiler.scm")
 
+;; find-variable
+
+(define (compile-time-env-first-frame compile-time-env)
+  (car compile-time-env))
+
+(define (compile-time-env-rest-frames compile-time-env)
+  (cdr compile-time-env))
+
+(define (find-variable variable env)
+  (define (var-index variables index)
+    (if (eq? variable (car variables))
+	index
+	(var-index (cdr variables) (+ index 1)))
+    )
+
+  (define (iter frames frame-num)
+    (if (null? frames)
+	'not-found
+	(let ((frame (compile-time-env-first-frame frames)))
+	  (if (memq variable frame)
+	      (list frame-num (var-index frame 0))
+	      (iter (compile-time-env-rest-frames frames) (+ frame-num 1))
+	      ))))
+
+  (iter env 0)
+  )
+
 ;; lexical-addressing
 (define (make-address frame-number displacement)
   (cons frame-number displacement))

@@ -595,4 +595,19 @@ after-lambda1
 
 ; 5.40
 ; ========================================================================
+;; See lexical-addressing-compiler.scm and my changes to
+;; (compile-lambda-body).
 
+
+; 5.41
+; ========================================================================
+;; My implementation is in lexical-addressing-compiler.scm
+;; It works as described in the text.
+;; 1 ]=> (find-variable 'c '((y z) (a b c d e) (x y)))
+;; Value 3: (1 2)
+
+;; 1 ]=> (find-variable 'x '((y z) (a b c d e) (x y)))
+;; Value 4: (2 0)
+
+;; 1 ]=> (find-variable 'w '((y z) (a b c d e) (x y)))
+;; Value: not-found
