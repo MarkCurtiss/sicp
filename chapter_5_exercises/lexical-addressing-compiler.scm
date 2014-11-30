@@ -9,6 +9,12 @@
 (define (compile-time-env-rest-frames compile-time-env)
   (cdr compile-time-env))
 
+(define (extend-compile-time-env variables compile-time-env)
+  (cons variables compile-time-env))
+
+(define (variable-not-found? variable)
+  (eq? variable 'not-found))
+
 (define (find-variable variable env)
   (define (var-index variables index)
     (if (eq? variable (car variables))
@@ -115,29 +121,56 @@
     `((assign ,target (const ,(text-of-quotation exp)))))
    env))
 
-(define (compile-variable exp target linkage env)
-  (end-with-linkage linkage
-   (make-instruction-sequence '(env) (list target)
-    `((assign ,target
-              (op lookup-variable-value)
-              (const ,exp)
-              (reg env))))
-   env))
+(define (compile-variable exp target linkage compile-time-env)
+  (let ((var-address (find-variable exp compile-time-env)))
+    (if (variable-not-found? var-address)
+	(end-with-linkage
+	 linkage
+	 (make-instruction-sequence '() (list target)
+				    `((assign ,target
+					      (op lookup-variable-value)
+					      (const ,exp)
+					      (op get-global-environment))))
+	 compile-time-env)
+	(end-with-linkage
+	 linkage
+	 (make-instruction-sequence '() (list target)
+				    `((assign ,target
+					      (op lexical-address-lookup)
+					      (const ,var-address)
+					      (const ,compile-time-env))))
+	 compile-time-env)
+	)))
 
-(define (compile-assignment exp target linkage env)
+(define (compile-assignment exp target linkage compile-time-env)
   (let ((var (assignment-variable exp))
         (get-value-code
-         (compile (assignment-value exp) 'val 'next env)))
-    (end-with-linkage linkage
-     (preserving '(env)
-      get-value-code
-      (make-instruction-sequence '(env val) (list target)
-       `((perform (op set-variable-value!)
-                  (const ,var)
-                  (reg val)
-                  (reg env))
-         (assign ,target (const ok)))))
-     env)))
+         (compile (assignment-value exp) 'val 'next compile-time-env)))
+    (let ((var-address (find-variable var compile-time-env)))
+      (if (variable-not-found? var-address)
+	  (end-with-linkage
+	   linkage
+	   (preserving '(env)
+	    get-value-code
+	    (make-instruction-sequence '(env val) (list target)
+				       `((perform (op set-variable-value!)
+						  (const ,var)
+						  (reg val)
+						  (reg env))
+					 (assign ,target (const ok)))))
+	   compile-time-env)
+	  (end-with-linkage
+	   linkage
+	   preserving '(env)
+	    get-value-code
+	    (make-instruction-sequence '(val) (list target)
+				       `((perform (op lexical-address-set!)
+						  (const ,var-address)
+						  (const ,compile-time-env)
+						  (reg val))
+					 (assign ,target (const ok))))
+	    compile-time-env)
+	  ))))
 
 (define (compile-definition exp target linkage env)
   (let ((var (definition-variable exp))

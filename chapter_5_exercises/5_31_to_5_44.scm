@@ -610,3 +610,62 @@ after-lambda1
 
 ;; 1 ]=> (find-variable 'w '((y z) (a b c d e) (x y)))
 ;; Value: not-found
+
+
+; 5.42
+; ========================================================================
+;; I updated (compile-variable) and (compile-assignment) in
+;; lexical-addressing-compiler.scm
+;; Here is some output.  Note that it maintains the compile-time-env; you can
+;; see it in entry6
+
+;; 1 ]=> (pp (compile exp 'val 'next '()))
+;; ((env)
+;;  (val)
+;;  ((assign val (op make-compiled-procedure) (label entry2) (reg env))
+;;   (goto (label after-lambda1))
+;;   entry2
+;;   (assign env (op compiled-procedure-env) (reg proc))
+;;   (assign env (op extend-environment) (const (x y)) (reg argl) (reg env))
+;;   (assign val (op make-compiled-procedure) (label entry4) (reg env))
+;;   (goto (label after-lambda3))
+;;   entry4
+;;   (assign env (op compiled-procedure-env) (reg proc))
+;;   (assign env (op extend-environment) (const (a b c d e)) (reg argl) (reg env))
+;;   (assign proc (op make-compiled-procedure) (label entry6) (reg env))
+;;   (goto (label after-lambda5))
+;;   entry6
+;;   (assign env (op compiled-procedure-env) (reg proc))
+;;   (assign env (op extend-environment) (const (y z)) (reg argl) (reg env))
+;;   (assign proc (op lookup-variable-value) (const +) (op get-global-environment))
+;;   (assign val (op lexical-address-lookup) (const (2 0)) (const ((y z) (a b c d e) (x y))))
+;;   (assign argl (op list) (reg val))
+;;   (assign val (op lexical-address-lookup) (const (1 3)) (const ((y z) (a b c d e) (x y))))
+;;   (assign argl (op cons) (reg val) (reg argl))
+;;   (assign val (op lexical-address-lookup) (const (1 2)) (const ((y z) (a b c d e) (x y))))
+;;   (assign argl (op cons) (reg val) (reg argl))
+;;   (test (op primitive-procedure?) (reg proc))
+;;   (branch (label primitive-branch9))
+;;   compiled-branch8
+;;   (assign val (op compiled-procedure-entry) (reg proc))
+;;   (goto (reg val))
+;;   primitive-branch9
+;;   (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+;;   (goto (reg continue))
+;;   after-call7
+;;   after-lambda5
+;;   (assign argl (const ()))
+;;   (test (op primitive-procedure?) (reg proc))
+;;   (branch (label primitive-branch12))
+;;   compiled-branch11
+;;   (assign val (op compiled-procedure-entry) (reg proc))
+;;   (goto (reg val))
+;;   primitive-branch12
+;;   (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+;;   (goto (reg continue))
+;;   after-call10
+;;   after-lambda3
+;;   (assign val (const 3))
+;;   (assign val (const 4))
+;;   (goto (reg continue))
+;;   after-lambda1))
