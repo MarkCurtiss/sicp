@@ -598,7 +598,6 @@ after-lambda1
 ;; See lexical-addressing-compiler.scm and my changes to
 ;; (compile-lambda-body).
 
-
 ; 5.41
 ; ========================================================================
 ;; My implementation is in lexical-addressing-compiler.scm

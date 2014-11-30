@@ -206,7 +206,7 @@
         (compile-lambda-body exp proc-entry env))
        after-lambda))))
 
-(define (compile-lambda-body exp proc-entry env)
+(define (compile-lambda-body exp proc-entry compile-time-env)
   (let ((formals (lambda-parameters exp)))
     (append-instruction-sequences
      (make-instruction-sequence '(env proc argl) '(env)
@@ -218,10 +218,7 @@
                 (reg argl)
                 (reg env))))
      (compile-sequence (lambda-body exp) 'val 'return
-		       (extend-environment
-			formals
-			(map (lambda (x) '()) formals)
-			env))))
+		       (extend-compile-time-env formals compile-time-env)))))
 
 ;;;SECTION 5.5.3
 
