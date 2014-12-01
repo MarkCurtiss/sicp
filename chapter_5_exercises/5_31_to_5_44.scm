@@ -619,6 +619,13 @@ after-lambda1
 ;; Here is some output.  Note that it maintains the compile-time-env; you can
 ;; see it in entry6
 
+;; 1 ]=> (define exp '((lambda (x y)
+;;    (lambda (a b c d e)
+;;      ((lambda (y z)
+;;       (+ c d x)))))
+;;  3
+;;  4))
+;; Value: exp
 ;; 1 ]=> (pp (compile exp 'val 'next '()))
 ;; ((env)
 ;;  (val)
@@ -669,3 +676,10 @@ after-lambda1
 ;;   (assign val (const 4))
 ;;   (goto (reg continue))
 ;;   after-lambda1))
+
+; 5.43
+; ========================================================================
+;; I did this by changing (compile-lambda-body) to call (scan-out-defines)
+;; in lexical-addressing-compiler.scm, but I didn't test it on an example
+;; with internal definitions so I don't have any interesting output for
+;; you.

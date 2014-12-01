@@ -1,6 +1,39 @@
 (load "book_code/ch5-eceval-support.scm")
 (load "book_code/ch5-compiler.scm")
 
+;; copied from 4_16_to_4_24.scm
+(define (scan-out-defines exp)
+  (define (is-define? clause)
+    (and (pair? clause) (eq? (car clause) 'define)))
+
+  (define (make-let-clauses variables values)
+    (cons 'let
+	  (cons
+	   (map (lambda (variable value) (list variable ''*unassigned*)) variables values)
+	   (map (lambda (variable value) (list 'set! variable value)) variables values))))
+
+  (define (expression-body)
+    (define (iter clause seen-defines?)
+      (cond ((is-define? (car clause)) (iter (cdr clause) true))
+	    ((and seen-defines?) (car clause))
+	    (else (iter (cdr clause) false))))
+
+    (iter exp false))
+
+  (define (build-replacement-expression source-exp replacement-exp replacement-assignments)
+    (if (null? source-exp)
+	replacement-exp
+	(if (is-define? (car source-exp))
+	    (build-replacement-expression '() (append replacement-exp (list (append replacement-assignments (list (expression-body))))) '())
+	    (build-replacement-expression (cdr source-exp) (append replacement-exp (list (car source-exp))) replacement-assignments))))
+
+  (let ((defines (filter is-define? exp)))
+    (define variables (map cadr defines))
+    (define values (map caddr defines))
+
+    (build-replacement-expression (cdr exp) (list (car exp)) (make-let-clauses variables values))
+    ))
+
 ;; find-variable
 
 (define (compile-time-env-first-frame compile-time-env)
@@ -250,7 +283,7 @@
                 (const ,formals)
                 (reg argl)
                 (reg env))))
-     (compile-sequence (lambda-body exp) 'val 'return
+     (compile-sequence (scan-out-defines (lambda-body exp)) 'val 'return
 		       (extend-compile-time-env formals compile-time-env)))))
 
 ;;;SECTION 5.5.3
