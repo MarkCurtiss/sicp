@@ -515,19 +515,6 @@ after-lambda1
 		 (make-instruction-sequence '(arg1 arg2) '(target)
 					    `((assign ,target (op ,primitive) (reg arg1) (reg arg2))))))))
 
-
-(define (compile-equals exp target linkage)
-  (make-primitive-application '= exp target linkage))
-
-(define (compile-multiplication exp target linkage)
-  (make-primitive-application '* exp target linkage))
-
-(define (compile-subtraction exp target linkage)
-  (make-primitive-application '- exp target linkage))
-
-(define (compile-addition exp target linkage)
-  (make-primitive-application '+ exp target linkage))
-
 ;; c.
 (pp
  (compile
@@ -683,3 +670,19 @@ after-lambda1
 ;; in lexical-addressing-compiler.scm, but I didn't test it on an example
 ;; with internal definitions so I don't have any interesting output for
 ;; you.
+
+; 5.44
+; ========================================================================
+;; This would require me to integrate the open-coded-primitive-compiler
+;; and the lexical-addressing-compiler.scm.
+;; Once I'd done that, I think all you'd have to do is change
+;; (open-coded-primitive?) thusly.
+
+(define (open-coded-primitive? exp compile-time-env)
+  (let ((variable-address (find-variable (operator exp) compile-time-env)))
+    (and (memq (operator exp) '(+ - = *))
+	 (variable-not-found? variable-address))))
+
+;; This would change the compiler so it only open codes a primitive if it
+;; doesn't find it in the compile-time environment.  Otherwise, it falls
+;; back on the existing behavior.
