@@ -4,10 +4,10 @@
 
 ;; 1 ]=>
 ;; (compile-and-go
-;;  '(define (factorial n)
-;;     (if (= n 1)
-;;         1
-;;         (* (factorial (- n 1)) n))))
+ ;; '(define (factorial n)
+ ;;    (if (= n 1)
+ ;;        1
+ ;;        (* (factorial (- n 1)) n))))
 
 ;; (total-pushes = 0 maximum-depth = 0)
 ;;  EC-Eval value:
@@ -78,3 +78,15 @@
 ;; and dramatically embarrasingly more efficient than the interpreted version.
 
 ;; b.
+;; Looking at the compiled version's "machine-language" output, a big obvious
+;; win that I see would be using open-coded primitives.  The machine has to do
+;; lots of saves and restores to call (-) and (*).
+
+;; Jeez also it seems silly that you are constantly testing all of your
+;; procedures and then branching based on whether they are primitive or compiled.
+;; If you maintained a compile-time environment then in (compile-application)
+;; you could first check if your procedure exists in the compile-time environment.
+;; Then you could dispatch to (compile-procedure-call) and optimize out the
+;; primitive vs compiled checks, instead generating the appropriate code directly.
+;; This would save you quite a bit of testing and branching at runtime.
+;; That wouldn't affect your stack depth but it'd save you some instructions.
