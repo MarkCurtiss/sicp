@@ -2,12 +2,11 @@
 ; ========================================================================
 (load "book_code/load-eceval-compiler.scm")
 
-;; 1 ]=>
-;; (compile-and-go
- ;; '(define (factorial n)
- ;;    (if (= n 1)
- ;;        1
- ;;        (* (factorial (- n 1)) n))))
+(compile-and-go
+ '(define (factorial n)
+    (if (= n 1)
+        1
+        (* (factorial (- n 1)) n))))
 
 ;; (total-pushes = 0 maximum-depth = 0)
 ;;  EC-Eval value:
@@ -90,3 +89,33 @@
 ;; primitive vs compiled checks, instead generating the appropriate code directly.
 ;; This would save you quite a bit of testing and branching at runtime.
 ;; That wouldn't affect your stack depth but it'd save you some instructions.
+
+; 5.46
+; ========================================================================
+(load "book_code/load-eceval-compiler.scm")
+
+(compile-and-go
+ '(define (fib n)
+    (if (< n 2)
+	n
+	(+ (fib (- n 1)) (fib (- n 2)))))
+ )
+
+;; Interpreted
+;; (fib 25)
+;; (total-pushes = 6,797,968 maximum-depth = 128)
+
+;; Compiled
+;; (fib 25)
+;; (total-pushes = 1,213,927 maximum-depth = 74)
+
+;; Special-purpose
+;; (fib 25)
+;; (total-pushes = 485,568 maximum-depth = 48)
+
+;; Once again, the interpreted version is comically inefficient.
+;; The special-purpose version, meanwhile has an order of magnitude
+;; less pushes than the other two!  Even the compiled version performs
+;; over a million stack operations.  It is still 6x more efficient than
+;; the interpreted version, though.
+;; The maximum stack depth doesn't seem that interesting by comparison.
