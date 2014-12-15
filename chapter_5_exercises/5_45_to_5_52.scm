@@ -119,3 +119,37 @@
 ;; over a million stack operations.  It is still 6x more efficient than
 ;; the interpreted version, though.
 ;; The maximum stack depth doesn't seem that interesting by comparison.
+
+; 5.47
+; ========================================================================
+;; I added my changes to interpreted-procedures-compiler.scm
+(load "book_code/load-eceval-compiler.scm")
+(load "interpreted-procedures-compiler.scm")
+
+(compile-and-go
+ '(define (f x)
+  (* 2 (g x)))
+ )
+
+;; 1 ]=> (compile-and-go
+;;  '(define (f x)
+;;   (* 2 (g x)))
+;;  )
+
+;; (total-pushes = 0 maximum-depth = 0)
+;; EC-Eval value:
+;; ok
+
+;; EC-Eval input:
+;; (define (g x) (+ 3 x))
+
+;; (total-pushes = 3 maximum-depth = 3)
+;; EC-Eval value:
+;; ok
+
+;; EC-Eval input:
+;; (f 2)
+
+;; (total-pushes = 16 maximum-depth = 7)
+;; EC-Eval value:
+;; 10
