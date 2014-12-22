@@ -187,3 +187,32 @@
 ;; (total-pushes = 144 maximum-depth = 28)
 ;; EC-Eval value:
 ;; 120
+
+; 5.49
+; ========================================================================
+(load "rcel-register-machine.scm")
+(start-rcel)
+
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* (factorial (- n 1)) n)))
+
+;; 1 ]=> (start-rcel)
+
+;; EC-Eval input:
+;;  (define (factorial n)
+;;     (if (= n 1)
+;;         1
+;;         (* (factorial (- n 1)) n)))
+
+;; (total-pushes = 0 maximum-depth = 0)
+;; EC-Eval value:
+;; ok
+
+;; EC-Eval input:
+;; (factorial 5)
+
+;; (total-pushes = 26 maximum-depth = 14)
+;; EC-Eval value:
+;; 120
