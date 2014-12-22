@@ -153,3 +153,37 @@
 ;; (total-pushes = 16 maximum-depth = 7)
 ;; EC-Eval value:
 ;; 10
+
+; 5.48
+; ========================================================================
+(load "book_code/load-eceval-compiler.scm")
+(start-eceval)
+
+;; See my changes to book_code/ch5-eceval-compiler.scm.  I added two new
+;; methods, (compile-and-run?) and (compile-into-machine) and added
+;; a test for it in eval-dispatch.
+
+(compile-and-run
+ (define (factorial n)
+    (if (= n 1)
+        1
+        (* (factorial (- n 1)) n))))
+
+;; 1 ]=> (start-eceval)
+;; EC-Eval input:
+;; (compile-and-run
+;;  (define (factorial n)
+;;     (if (= n 1)
+;;         1
+;;         (* (factorial (- n 1)) n))))
+
+;; (total-pushes = 3 maximum-depth = 3)
+;; EC-Eval value:
+;; ok
+
+;; EC-Eval input:
+;; (factorial 5)
+
+;; (total-pushes = 144 maximum-depth = 28)
+;; EC-Eval value:
+;; 120

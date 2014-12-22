@@ -56,6 +56,17 @@
     (set-register-contents! eceval 'val instructions)
     (set-register-contents! eceval 'flag true)
     (start eceval)))
+
+;; To support compiling and running code
+(define (compile-and-run? expression)
+  (tagged-list? expression 'compile-and-run))
+(define (compile-into-machine expression)
+  (let ((instructions
+	 (assemble (statements
+		    (compile expression 'val 'return))
+		   eceval)))
+    (set-register-contents! eceval 'val instructions)))
+
 
 ;;**NB. To [not] monitor stack operations, comment in/[out] the line after
 ;; print-result in the machine controller below
@@ -128,6 +139,10 @@
    (list 'compiled-procedure? compiled-procedure?)
    (list 'compiled-procedure-entry compiled-procedure-entry)
    (list 'compiled-procedure-env compiled-procedure-env)
+
+   ;; to compile code
+   (list 'compile-and-run? compile-and-run?)
+   (list 'compile-into-machine compile-into-machine)
    ))
 
 (define eceval
@@ -180,6 +195,8 @@ signal-error
 
 ;;SECTION 5.4.1
 eval-dispatch
+  (test (op compile-and-run?) (reg exp))
+  (branch (label ev-compile-and-run))
   (test (op self-evaluating?) (reg exp))
   (branch (label ev-self-eval))
   (test (op variable?) (reg exp))
@@ -200,6 +217,10 @@ eval-dispatch
   (branch (label ev-application))
   (goto (label unknown-expression-type))
 
+ev-compile-and-run
+  (assign exp (op compiled-procedure-entry) (reg exp))
+  (perform (op compile-into-machine) (reg exp))
+  (goto (label eval-dispatch))
 ev-self-eval
   (assign val (reg exp))
   (goto (reg continue))
