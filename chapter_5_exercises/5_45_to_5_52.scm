@@ -216,3 +216,16 @@
 ;; (total-pushes = 26 maximum-depth = 14)
 ;; EC-Eval value:
 ;; 120
+
+; 5.50
+; ========================================================================
+(load "book_code/original-ch5-regsim.scm")
+(load "compile-mcevaluator.scm")
+
+(define mceval-instructions (compile-metacircular-evaluator))
+
+(define compiled-machine
+  (make-machine
+   '(exp env val proc argl continue unev)
+   '()
+   mceval-instructions))
