@@ -229,3 +229,20 @@
    '(exp env val proc argl continue unev)
    '()
    mceval-instructions))
+;; This doesn't work because the result of compilation is incompatible with
+;; make-machine.
+
+; 5.51
+; ========================================================================
+;; I started on this and made a tiny amount of progress but our study group
+;; leader has said we are now done with the book.
+;; I managed to write cons() and car() and cdr() in C and had unit tests
+;; and was starting work on translating all the environment code.
+;; If I ever go back and make significant progress on my Scheme implementation
+;; I'll add a link to it here.
+
+; 5.52
+; ========================================================================
+;; As above, our study group leader deemed these last two problems 'extra
+;; credit.'  Looking at MIT syllabi it doesn't look like they even do the
+;; compilation chapter!
